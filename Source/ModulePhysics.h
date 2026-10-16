@@ -64,4 +64,5 @@ private:
 	// Static body with no fixtures, needed to create joints like the mouse joint
 	b2Body* ground;
 	b2MouseJoint* mouse_joint;
+	b2RevoluteJoint* flipper_joint;   // <-- nuevo JONATHAN
 };
