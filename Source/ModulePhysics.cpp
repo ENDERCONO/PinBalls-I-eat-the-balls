@@ -13,6 +13,10 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	ground = NULL;
 	mouse_joint = NULL;
 	debug = true;
+	flipper_joint = NULL;
+	kicker_joint = NULL;
+	//Fricción
+	frictionBody = NULL;
 }
 
 // Destructor
@@ -38,6 +42,8 @@ bool ModulePhysics::Start()
 	int y = (int)(SCREEN_HEIGHT / 1.5f);
 	int diameter = SCREEN_WIDTH / 2;
 
+
+	/*
 	// Homework: dynamic, so a joint can make it rotate
 	b2BodyDef body;
 	body.type = b2_dynamicBody;
@@ -60,12 +66,270 @@ bool ModulePhysics::Start()
 	revolute.maxMotorTorque = 100000.0f;
 	revolute.motorSpeed = 0.25f * b2_pi; // rad/s
 	world->CreateJoint(&revolute);
+	*/
+
+
+
+
+
+
+
+	//----------------------------------------------------------------------------------------------------------------------------------------
+//Modification of Jonathan 18/10/26
+//Creation of the diferents joints
+
+
+	//Hinge Joints
+
+
+
+	//Object 1
+
+	//Body
+	b2BodyDef B1;
+	B1.type = b2_staticBody;
+	B1.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+	b2Body* body1 = world->CreateBody(&B1);
+
+	//Shape
+	b2CircleShape S1;
+	S1.m_radius = PIXEL_TO_METERS(15);
+
+	//Fixture
+	b2FixtureDef F1;
+	F1.shape = &S1;
+	body1->CreateFixture(&F1);
+
+
+	//Object 2
+
+	//Body
+	b2BodyDef B2;
+	B2.type = b2_dynamicBody;
+	B2.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+	b2Body* body2 = world->CreateBody(&B2);
+
+	//Shape
+	b2PolygonShape S2;
+
+	//Con cambio de offSet 
+	S2.SetAsBox(PIXEL_TO_METERS(100), PIXEL_TO_METERS(15),
+		b2Vec2(PIXEL_TO_METERS(100), 0), 0);
+
+	//Fixture
+	b2FixtureDef F2;
+	F2.shape = &S2;
+	F2.density = 1.0f;
+	body2->CreateFixture(&F2);
+
+
+
+
+	//Objects for the Kicker
+	//OBJ 3
+
+	//Body
+	b2BodyDef B3;
+	B3.type = b2_staticBody;
+	B3.position.Set(PIXEL_TO_METERS(x+400), PIXEL_TO_METERS(y+100));
+	b2Body* body3 = world->CreateBody(&B3);
+
+	//Shape
+	b2PolygonShape S3;
+	S3.SetAsBox(PIXEL_TO_METERS(50), PIXEL_TO_METERS(70));
+
+
+	//Fixture
+	b2FixtureDef F3;
+	F3.shape = &S3;
+	body3->CreateFixture(&F3);
+
+
+	//OBJ 4
+
+		//Body
+	b2BodyDef B4;
+	B4.type = b2_dynamicBody;
+	B4.position.Set(PIXEL_TO_METERS(x+400), PIXEL_TO_METERS(y+100));
+	b2Body* body4 = world->CreateBody(&B4);
+
+	//Shape
+	b2PolygonShape S4;
+	S4.SetAsBox(PIXEL_TO_METERS(50), PIXEL_TO_METERS(50));
+
+
+	//Fixture
+	b2FixtureDef F4;
+	F4.shape = &S4;
+	F4.density = 1.0f;
+	body4->CreateFixture(&F4);
+
+
+	//Creacion de los Bumpers
+	//Meterle Restituition en la Fixture Fuerzaaaaaaa!!!!!!!!!!! Tocho
+
+	b2BodyDef BB;
+	BB.type = b2_staticBody;
+	BB.position.Set(PIXEL_TO_METERS(x - 400), PIXEL_TO_METERS(y - 100));
+	b2Body* bumper = world->CreateBody(&BB);
+
+	//Shape
+	b2CircleShape SB;
+	SB.m_radius =(PIXEL_TO_METERS(50));
+
+
+	//Fixture
+	b2FixtureDef FB;
+	FB.shape = &S4;
+	FB.restitution = 1.0f;//mas de 1 debuelve fuerza
+	bumper->CreateFixture(&FB);
+
+
+
+	//------------------------FRICTON BODY_____________
+
+
+
+	b2BodyDef BF;
+	BF.type = b2_staticBody;
+	BB.position.Set(PIXEL_TO_METERS(x-600), PIXEL_TO_METERS(y - 150));
+	b2Body* friction = world->CreateBody(&BF);
+
+	//Shape
+	b2PolygonShape SF;
+	SF.SetAsBox(PIXEL_TO_METERS(50), PIXEL_TO_METERS(100));
+
+
+	//Fixture
+	b2FixtureDef FF;
+	FF.shape = &SF;
+	FF.restitution = 1.0f;//mas de 1 debuelve fuerza
+	friction->CreateFixture(&FF);
+
+
+	frictionBody = friction;
+
+
+
+
+	//Joints
+	//----------------------------------------------------------
+	//RevoluteJoint
+	
+	//Conectamos los dos puntos
+	b2RevoluteJointDef jointDef1;
+	jointDef1.Initialize(body1, body2, body1->GetWorldCenter());
+
+	//Seteamos lo de los angulos, aunque los angulos luego los definimos en el update con lo de los botones para que giren
+	jointDef1.enableLimit = true;
+
+	jointDef1.lowerAngle = -0.25f * b2_pi;   // -45° (arriba)
+	jointDef1.upperAngle = 0.0f;             // 0° (reposo)
+
+
+	//Implementamos el Torque, basicamente que tenga una reaccion al interactuar con onbjetos
+	jointDef1.enableMotor = true;
+	jointDef1.maxMotorTorque = 800.0f;
+	jointDef1.motorSpeed = 800.0f;
+
+	flipper_joint = (b2RevoluteJoint*)world->CreateJoint(&jointDef1);
+
+	//-------------------------------------------------------------------
+
+
+	//PrismaticJoint
+
+	//Definicion del joint
+	b2PrismaticJointDef jointDef2; b2Vec2 worldAxis(0.0f, 1.0f);
+	jointDef2.Initialize(body3, body4, body3->GetWorldCenter(), worldAxis);
+
+	//Seteamos los desplazamientos
+
+	jointDef2.enableLimit = true;
+	jointDef2.lowerTranslation = PIXEL_TO_METERS(-60);
+	jointDef2.upperTranslation = PIXEL_TO_METERS(0);
+
+	//Interaccion con objetos
+
+	jointDef2.enableMotor = true;
+	jointDef2.maxMotorForce = 800.0f;
+	jointDef2.motorSpeed = 0.0f;
+
+	  //Creacion del joint y guardado
+	kicker_joint = (b2PrismaticJoint*)world->CreateJoint(&jointDef2);
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return true;
 }
 
 update_status ModulePhysics::PreUpdate()
 {
+	//-------------------------------------------------------------------------
+	//Mecanica de subida
+	if (IsKeyDown(KEY_Q))
+	{
+		flipper_joint->SetMotorSpeed(-7000.0f);
+	}
+	else flipper_joint->SetMotorSpeed(5.0f);
+
+
+
+	//--------------------------------------------------------
+	//Mecanica del Prismatic Joint
+	if (IsKeyDown(KEY_W))
+	{
+		kicker_joint->SetMotorSpeed(-10.0f);
+	}
+	else kicker_joint->SetMotorSpeed(5.0f);
+
+
+
+	//------------------------------
+	//Friccion
+	//Quiero que la area que rodea mi objeto sienta la relentización
+
+
+
+	if (frictionBody != NULL)
+	{
+		float rad = PIXEL_TO_METERS(120);
+
+		//Hacemos un bucle que recorra constantemento todos los cuerpoos que hay en este proyecto
+
+		for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
+		{
+
+			if (b->GetType() != b2_dynamicBody)
+				continue;
+
+			b2Vec2 d = b->GetPosition() - frictionBody->GetPosition();
+
+			if (d.Length() < rad)
+				b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
+
+
+		}
+	}
+
+	//----------------------------
+
 	world->Step(1.0f / 60.0f, 8, 3);
 
 	return UPDATE_CONTINUE;
