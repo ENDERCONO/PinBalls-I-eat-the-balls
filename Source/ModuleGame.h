@@ -61,8 +61,8 @@ enum GameState //To pause game when ended and restart
 
 enum SpringState //State of the Spring
 {
-	Spring_LOADED, // compressed, waiting
-	Spring_RELEASED // the spring is pushing / resting
+	SPRING_LOADED, // compressed, waiting
+	SPRING_RELEASED // the spring is pushing / resting
 };
 
 class ModuleGame : public Module
@@ -93,13 +93,6 @@ private:
 		float timer;
 		int value;
 		bool bonus;
-	};
-
-	struct Particle
-	{
-		float x, y, vx, vy;
-		float life;
-		Color color;
 	};
 
 	struct Bumper {
@@ -145,7 +138,6 @@ private:
 	void Restart();
 	void GameOver();
 	void AddScore(int value, int x, int y, bool bonus = false);
-	void SpawnParticles(int x, int y, int count, Color color);
 
 	//Updates every frame
 	void UpdateFlipper(Flipper& flipper, bool pressed, float dt);
@@ -194,7 +186,6 @@ private:
 	bool drain_hit;
 
 	std::vector<Popup> popups;
-	std::vector<Particle> particles;
 	float trail_x[TRAIL_LENGTH];
 	float trail_y[TRAIL_LENGTH];
 	int trail_count;
