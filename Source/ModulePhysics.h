@@ -64,5 +64,13 @@ private:
 	// Static body with no fixtures, needed to create joints like the mouse joint
 	b2Body* ground;
 	b2MouseJoint* mouse_joint;
-	b2RevoluteJoint* flipper_joint;   // <-- nuevo JONATHAN
+
+	//Creacion de los Joints para poderlos modificar
+	b2RevoluteJoint* flipper_joint;
+	b2PrismaticJoint* kicker_joint;
+
+
+	//Intento de ojeto que relentiza
+	//Creamos un objeto y luego ya le damos el valor de otro objeto
+	b2Body* frictionBody;
 };
