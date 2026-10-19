@@ -83,7 +83,9 @@ bool ModulePhysics::Start()
 //Modification of Jonathan 18/10/26
 //Creation of the diferents joints
 
-
+	int x = (int)(SCREEN_WIDTH / 2);
+	int y = (int)(SCREEN_HEIGHT / 1.5f);
+	int diameter = SCREEN_WIDTH / 2;
 	//Hinge Joints
 
 
@@ -185,7 +187,7 @@ bool ModulePhysics::Start()
 
 	//Fixture
 	b2FixtureDef FB;
-	FB.shape = &S4;
+	FB.shape = &SB;
 	FB.restitution = 1.0f;//mas de 1 debuelve fuerza
 	bumper->CreateFixture(&FB);
 
@@ -197,7 +199,7 @@ bool ModulePhysics::Start()
 
 	b2BodyDef BF;
 	BF.type = b2_staticBody;
-	BB.position.Set(PIXEL_TO_METERS(x-600), PIXEL_TO_METERS(y - 150));
+	BF.position.Set(PIXEL_TO_METERS(x-600), PIXEL_TO_METERS(y - 150));
 	b2Body* friction = world->CreateBody(&BF);
 
 	//Shape
@@ -282,7 +284,6 @@ bool ModulePhysics::Start()
 
 
 
-	*/
 
 
 
@@ -291,102 +292,8 @@ bool ModulePhysics::Start()
 
 
 
-	//---------------------------------------MODIFICACIÓN JONATHAN, PRUEBA FLIPERSwww--------------------------------------------------
 
 
-	//Test
-
-
-	//-----------------BODY1----------------------------------------------------
-		// In middle of the screen
-	int x = (int)(SCREEN_WIDTH / 2);
-	int y = (int)(SCREEN_HEIGHT / 1.5f);
-	int diameter = SCREEN_WIDTH / 2;
-
-	//Creation of BODY_1 STATIC
-
-	b2BodyDef bodyDef1;
-	bodyDef1.type = b2_staticBody;
-	bodyDef1.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
-	b2Body* body1 = world->CreateBody(&bodyDef1);
-
-	//Creatin of the FIXTURE BODY_1
-
-
-		//Creation of shapes
-	b2PolygonShape shape1;
-	shape1.SetAsBox(PIXEL_TO_METERS(25), PIXEL_TO_METERS(50));
-
-
-
-	//Creatin of the FIXTURE BODY_1
-	b2FixtureDef fixture1;
-	fixture1.shape = &shape1;
-	fixture1.density = 1.0f;
-	fixture1.friction = 0.3f;
-	body1->CreateFixture(&fixture1);
-
-
-
-	//-----------------BODY2----------------------------------------------------
-		// In middle of the screen
-	int x2 = (int)(SCREEN_WIDTH / 2);
-	int y2 = (int)(SCREEN_HEIGHT / 1.5f);
-
-
-	//Creation of BODY_1 STATIC
-
-	b2BodyDef bodyDef2;
-	bodyDef2.type = b2_dynamicBody;
-	bodyDef2.position.Set(PIXEL_TO_METERS(x2), PIXEL_TO_METERS(y2));
-	b2Body* body2 = world->CreateBody(&bodyDef2);
-
-	//Creatin of the FIXTURE BODY_1
-
-
-		//Creation of shapes
-	b2PolygonShape shape2;
-	shape2.SetAsBox(PIXEL_TO_METERS(25), PIXEL_TO_METERS(100));
-
-
-
-	//Creatin of the FIXTURE BODY_1
-	b2FixtureDef fixture2;
-	fixture2.shape = &shape2;
-	fixture2.density = 1.0f;
-	fixture2.friction = 0.3f;
-	body2->CreateFixture(&fixture2);
-
-	//------------------------------------------------------------------------------------------------
-
-
-
-
-
-	//------------------------------REVOLUTE JOINT-------------------------------------------------
-
-
-	b2RevoluteJointDef jointDef;
-	jointDef.Initialize(body1, body2, body1->GetWorldCenter());
-
-	jointDef.enableLimit = true;
-	jointDef.lowerAngle = -0.5f * b2_pi; // -90 grados
-	jointDef.upperAngle = 0.0f; // -45 grados
-
-	jointDef.enableMotor = true;
-	jointDef.maxMotorTorque = 777.0f;
-	jointDef.motorSpeed = 7770.0f;
-
-
-
-	flipper_joint = (b2RevoluteJoint*)world->CreateJoint(&jointDef);
-	//--------------------------------------------------------
-
-
-
-
-
-	//----------------------------------------s
 
 
 
@@ -417,13 +324,6 @@ update_status ModulePhysics::PreUpdate()
 {
 
 
-	if (flipper_joint != NULL)
-	{
-		if (IsKeyDown(KEY_W))
-			flipper_joint->SetMotorSpeed(-500.0f);  // sube
-		else
-			flipper_joint->SetMotorSpeed(777.0f);    // vuelve al reposo
-	}
 
 	//-------------------------------------------------------------------------
 	//Mecanica de subida
