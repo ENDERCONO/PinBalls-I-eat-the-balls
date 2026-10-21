@@ -11,6 +11,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// =====================================================================
+// PINBALL (desactivado). Para usarlo: cambia "#if 0" por "#if 1"
+// y pon "#if 1" -> "#if 0" en el bloque de PLANTILLA de más abajo.
+// =====================================================================
+#if 0
+
 static int TX(int x) //table coords to window px
 {
 	return TABLE_X + x;
@@ -21,7 +27,7 @@ static float Snap(float v) //since we draw at half res
 	return floorf(v / PIXEL_SCALE + 0.5f) * PIXEL_SCALE;
 }
 
-static void DrawPixelText(const char* text, int x, int y, int size, Color color) //Pixelart Text Draw
+static void DrawPixelText(const char* text, int x, int y, int size, Color color)
 {
 	DrawText(text, x + 2, y + 2, size, Color{ 0, 0, 0, 200 });
 	DrawText(text, x, y, size, color);
@@ -34,7 +40,6 @@ static void DrawPixelTextCentered(const char* text, int center_x, int y, int siz
 
 ModuleGame::ModuleGame(Application* app, bool start_enabled) : Module(app, start_enabled)
 {
-	//Initialize game state
 	state = STATE_PLAYING;
 	score = 0;
 	highscore = 0;
@@ -67,14 +72,12 @@ ModuleGame::ModuleGame(Application* app, bool start_enabled) : Module(app, start
 	fx_bumper = fx_kicker = fx_target = fx_flipper = fx_launch = fx_wall = fx_gameover = fx_bonus = 0;
 }
 
-ModuleGame::~ModuleGame() {}//destructor
+ModuleGame::~ModuleGame() {}
 
-
-//Load game
 bool ModuleGame::Start() {
 	LOG("Loading game");
 
-	App->renderer->camera.x = App->renderer->camera.y = 0; 
+	App->renderer->camera.x = App->renderer->camera.y = 0;
 
 	LoadAssets();
 	BuildTable();
@@ -83,7 +86,6 @@ bool ModuleGame::Start() {
 	return true;
 }
 
-//Unload game
 bool ModuleGame::CleanUp() {
 	LOG("Unloading game");
 
@@ -111,7 +113,7 @@ bool ModuleGame::CleanUp() {
 
 	return true;
 }
-//Load all game assets
+
 void ModuleGame::LoadAssets() {
 	tex_background = LoadTexture("Assets/background.png");
 	tex_table = LoadTexture("Assets/table.png");
@@ -130,13 +132,12 @@ void ModuleGame::LoadAssets() {
 	tex_platform_small = LoadTexture("Assets/platform_small.png");
 	tex_spinner = LoadTexture("Assets/spinner.png");
 
-	//since it's pixelart we use nearest filter instead of bilinear 
 	Texture2D all[] = { tex_background, tex_table, tex_ball, tex_bumper, tex_bumper_hit, tex_diamond, tex_diamond_hit,
 		tex_flipper, tex_kicker, tex_kicker_hit, tex_target, tex_target_lit, tex_spring,
 		tex_platform_wide, tex_platform_small, tex_spinner };
 	for (Texture2D t : all)
 		SetTextureFilter(t, TEXTURE_FILTER_POINT);
-	//audio assets
+
 	fx_bumper = App->audio->LoadFx("Assets/bumper.wav");
 	fx_kicker = App->audio->LoadFx("Assets/slingshot.wav");
 	fx_target = App->audio->LoadFx("Assets/bonus.wav");
@@ -146,7 +147,7 @@ void ModuleGame::LoadAssets() {
 	fx_gameover = App->audio->LoadFx("Assets/gameover.wav");
 	fx_bonus = App->audio->LoadFx("Assets/bank.wav");
 }
-//Unload game assets
+
 void ModuleGame::UnloadAssets() {
 	Texture2D all[] = { tex_background, tex_table, tex_ball, tex_bumper, tex_bumper_hit, tex_diamond, tex_diamond_hit,
 		tex_flipper, tex_kicker, tex_kicker_hit, tex_target, tex_target_lit, tex_spring,
@@ -154,21 +155,20 @@ void ModuleGame::UnloadAssets() {
 	for (Texture2D t : all)
 		UnloadTexture(t);
 }
-PhysBody* ModuleGame::AddBody(PhysBody* body, int kind, int points){
+
+PhysBody* ModuleGame::AddBody(PhysBody* body, int kind, int points) {
 	body->kind = kind;
 	body->points = points;
-	bodies.push_back(body); //make new body on the stack
+	bodies.push_back(body);
 	return body;
 }
 
-//Build game table space with collisions / colliders
 void ModuleGame::BuildTable() {
 	ModulePhysics* physics = App->physics;
-	//shell box
 	std::vector<int> shell;
 	shell.push_back(490); shell.push_back(700);
 	shell.push_back(490); shell.push_back(250);
-	for (int i = 1; i <= 36; ++i){
+	for (int i = 1; i <= 36; ++i) {
 		float a = (float)i * PI / 36.0f;
 		shell.push_back((int)(250.0f + 240.0f * cosf(a)));
 		shell.push_back((int)(250.0f - 240.0f * sinf(a)));
@@ -177,32 +177,24 @@ void ModuleGame::BuildTable() {
 	shell.push_back(126); shell.push_back(591);
 	AddBody(physics->CreateChain(TABLE_X, 0, shell.data(), (int)shell.size(), false, WALL_RESTITUTION, 0.1f), KIND_WALL);
 
-	//walls between the right launch zone and game zone
 	const int lane_wall[] = { 455, 700, 455, 200 };
 	AddBody(physics->CreateChain(TABLE_X, 0, lane_wall, 4, false, WALL_RESTITUTION, 0.1f), KIND_WALL);
 
-	//slope next to flipper that "guides" ball to the flipper
 	const int right_guide[] = { 455, 520, 338, 591 };
 	AddBody(physics->CreateChain(TABLE_X, 0, right_guide, 4, false, WALL_RESTITUTION, 0.1f), KIND_WALL);
 
-	//gate line where the game ends when ball collides against it (under the flippers)
 	const int gate_line[] = { 455, 200, 490, 150 };
 	PhysBody* gate = AddBody(physics->CreateChain(TABLE_X, 0, gate_line, 4, false, WALL_RESTITUTION, 0.1f), KIND_GATE);
 	gate->gate_nx = -50.0f / 61.0f;
 	gate->gate_ny = -35.0f / 61.0f;
 
-	//collision that ends the game (under the flippers gate line)
 	drain = AddBody(physics->CreateRectangleSensor(TABLE_X + TABLE_W / 2, TABLE_H + 40, TABLE_W / 2 + 20, 28), KIND_DRAIN);
 	drain->listener = this;
 
-	//spring that pushes ball at game start
 	Spring = AddBody(physics->CreateSPRING(TX(SPRING_X), SPRING_COMPRESSED_Y, 15, 10, SPRING_COMPRESSED_Y - SPRING_REST_Y), KIND_SPRING);
 
-	//flippers that the player controlls
-	//flipper  shape
-	const int flipper_shape[] = { -10, -6, -10, 6, 0, 13, FLIPPER_LENGTH, 7, FLIPPER_LENGTH, -7, 0, -13};
+	const int flipper_shape[] = { -10, -6, -10, 6, 0, 13, FLIPPER_LENGTH, 7, FLIPPER_LENGTH, -7, 0, -13 };
 
-	//Right and left flippers
 	flipper_left.left = true;
 	flipper_left.rest_angle = 30.0f * DEGTORAD;
 	flipper_left.pressed_angle = (30.0f - FLIPPER_SWING_DEG) * DEGTORAD;
@@ -213,18 +205,16 @@ void ModuleGame::BuildTable() {
 	flipper_right.pressed_angle = (-210.0f + FLIPPER_SWING_DEG) * DEGTORAD;
 	flipper_right.body = AddBody(physics->CreatePolygon(TX(338), 600, flipper_shape, 12, b2_kinematicBody, 0.2f, 0.4f, -210.0f), KIND_FLIPPER);
 
-	//bouncy colliders taht add force and velocity to the ball
-	const int kicker_left_shape[] = {40, 430, 40, 500, 100, 535};
-	const int kicker_right_shape[] = {425, 430, 425, 500, 365, 535};
+	const int kicker_left_shape[] = { 40, 430, 40, 500, 100, 535 };
+	const int kicker_right_shape[] = { 425, 430, 425, 500, 365, 535 };
 
 	Kicker kl = { AddBody(physics->CreatePolygon(TABLE_X, 0, kicker_left_shape, 6, b2_staticBody, SLINGSHOT_RESTITUTION, 0.0f), KIND_BOUNCY, POINTS_SLINGSHOT), TX(36), 426, false };
 	Kicker kr = { AddBody(physics->CreatePolygon(TABLE_X, 0, kicker_right_shape, 6, b2_staticBody, SLINGSHOT_RESTITUTION, 0.0f), KIND_BOUNCY, POINTS_SLINGSHOT), TX(361), 426, true };
 	kickers.push_back(kl);
 	kickers.push_back(kr);
 
-	//Bumpers
 	const int bumper_pos[][2] = { { 170, 205 }, { 300, 205 }, { 235, 268 } };
-	for (int i = 0; i < 3; ++i){
+	for (int i = 0; i < 3; ++i) {
 		Bumper b;
 		b.x = TX(bumper_pos[i][0]);
 		b.y = bumper_pos[i][1];
@@ -233,10 +223,9 @@ void ModuleGame::BuildTable() {
 		bumpers.push_back(b);
 	}
 
-	//Diamonds, diamond shape that bounce
-	const int diamond_shape[] = {0, -20, 20, 0, 0, 20, -20, 0};
+	const int diamond_shape[] = { 0, -20, 20, 0, 0, 20, -20, 0 };
 	const int diamond_pos[][2] = { {78, 255}, {392, 255} };
-	for (int i = 0; i < 2; ++i){
+	for (int i = 0; i < 2; ++i) {
 		Diamond d;
 		d.x = TX(diamond_pos[i][0]);
 		d.y = diamond_pos[i][1];
@@ -244,9 +233,8 @@ void ModuleGame::BuildTable() {
 		diamonds.push_back(d);
 	}
 
-	//Side walls that award bonus points
 	const int target_pos[][2] = { {22, 310}, {22, 360}, {443, 310}, {443, 360} };
-	for (int i = 0; i < 4; ++i){
+	for (int i = 0; i < 4; ++i) {
 		Target t;
 		t.x = TX(target_pos[i][0]);
 		t.y = target_pos[i][1];
@@ -257,9 +245,7 @@ void ModuleGame::BuildTable() {
 		targets.push_back(t);
 	}
 
-	//Kinematic bodies that move, slightly slippery and tilted so the ball can't rest on it
 	{
-		//platofrms that move left right above flippers
 		Mover m;
 		m.cx = (float)TX(232); m.cy = 490.0f; m.ax = 70.0f; m.ay = 0.0f;
 		m.speed = 1.3f; m.phase = 0.0f; m.spinner = false;
@@ -268,7 +254,6 @@ void ModuleGame::BuildTable() {
 		movers.push_back(m);
 	}
 	{
-		//platforms that go up and down on the sides
 		Mover m;
 		m.cx = (float)TX(385); m.cy = 350.0f; m.ax = 0.0f; m.ay = 50.0f;
 		m.speed = 1.0f; m.phase = 0.0f; m.spinner = false;
@@ -277,7 +262,6 @@ void ModuleGame::BuildTable() {
 		movers.push_back(m);
 	}
 	{
-		//a platform / bar that rotates forever on the side
 		Mover m;
 		m.cx = (float)TX(118); m.cy = 345.0f; m.ax = 0.0f; m.ay = 0.0f;
 		m.speed = 2.2f; m.phase = 0.0f; m.spinner = true;
@@ -286,13 +270,12 @@ void ModuleGame::BuildTable() {
 		movers.push_back(m);
 	}
 }
-//Defining GAME Functions
+
 void ModuleGame::SpawnBall() {
 	if (ball != NULL) {
 		App->physics->DestroyBody(ball);
 		ball = NULL;
 	}
-	//On the right side over the loaded spring
 	ball = App->physics->CreateCircle(TX(SPRING_X), SPRING_COMPRESSED_Y - 10 - BALL_RADIUS - 1, BALL_RADIUS, b2_dynamicBody, 0.3f, 0.1f, true);
 	ball->kind = KIND_BALL;
 	ball->listener = this;
@@ -301,6 +284,7 @@ void ModuleGame::SpawnBall() {
 	ball_stuck_timer = 0.0f;
 	ball_idle_timer = 0.0f;
 }
+
 void ModuleGame::RespawnBall() {
 	spring_state = SPRING_LOADED;
 	spring_timer = SPRING_LAUNCH_DELAY;
@@ -322,7 +306,6 @@ void ModuleGame::Restart() {
 	for (Target& t : targets)
 		t.lit = false;
 
-	//flippers to initial rotation
 	Flipper* flippers[2] = { &flipper_left, &flipper_right };
 	for (Flipper* f : flippers) {
 		f->angle = f->rest_angle;
@@ -333,22 +316,25 @@ void ModuleGame::Restart() {
 	}
 	RespawnBall();
 }
+
 void ModuleGame::GameOver() {
 	state = STATE_GAME_OVER;
-	if (score > highscore) //setting new highscore if it's better than old (not persistent)
+	if (score > highscore)
 		highscore = score;
-	App->physics->DestroyBody(ball); //destroy ball since it's no longer needed
+	App->physics->DestroyBody(ball);
 	ball = NULL;
-	flipper_left.body->SetAngularVelocity(0.0f); //return angular velocity to 0
+	flipper_left.body->SetAngularVelocity(0.0f);
 	flipper_right.body->SetAngularVelocity(0.0f);
-	App->audio->PlayFx(fx_gameover); //play game end sfx
+	App->audio->PlayFx(fx_gameover);
 }
+
 void ModuleGame::AddScore(int value, int x, int y, bool bonus) {
-	score += value; //adding score
-	hits++; //hits collided
+	score += value;
+	hits++;
 	Popup p = { (float)x, (float)y, bonus ? 1.4f : 0.8f, value, bonus };
 	popups.push_back(p);
 }
+
 void ModuleGame::UpdateFlipper(Flipper& flipper, bool pressed, float dt)
 {
 	if (pressed && flipper.was_pressed == false)
@@ -356,7 +342,6 @@ void ModuleGame::UpdateFlipper(Flipper& flipper, bool pressed, float dt)
 
 	if (pressed)
 	{
-		//rotates 45º then returns when not pressed
 		float speed = (FLIPPER_SWING_DEG * DEGTORAD) / FLIPPER_RISE_TIME;
 		float direction = (flipper.pressed_angle > flipper.rest_angle) ? 1.0f : -1.0f;
 
@@ -370,8 +355,6 @@ void ModuleGame::UpdateFlipper(Flipper& flipper, bool pressed, float dt)
 	}
 	else
 	{
-		// Released: damped spring towards the rest angle. Damping ratio < 1 = it passes the rest
-		// angle a little bit and comes back (the "bounce")
 		float k = FLIPPER_SPRING_FREQ * FLIPPER_SPRING_FREQ;
 		float c = 2.0f * FLIPPER_DAMPING * FLIPPER_SPRING_FREQ;
 
@@ -391,26 +374,25 @@ void ModuleGame::UpdateFlipper(Flipper& flipper, bool pressed, float dt)
 	flipper.was_pressed = pressed;
 }
 
+#endif // PINBALL
 
 
-
-
+// =====================================================================
+// PLANTILLA (activa)
+// =====================================================================
+#if 1
 
 // Base class for everything in the scene that has a physics body
 class PhysicEntity
 {
 protected:
-
 	PhysicEntity(PhysBody* _body)
 		: body(_body)
 	{
-
 	}
 
 public:
 	virtual ~PhysicEntity() = default;
-
-	// Draw the entity at the position of its body
 	virtual void Update() = 0;
 
 public:
@@ -424,7 +406,6 @@ public:
 		: PhysicEntity(physics->CreateCircle(_x, _y, 25))
 		, texture(_texture)
 	{
-
 	}
 
 	void Update() override
@@ -432,10 +413,8 @@ public:
 		int x, y;
 		body->GetPosition(x, y);
 
-		// Red when the mouse is inside the body
 		Color tint = body->Contains(GetMouseX(), GetMouseY()) ? RED : WHITE;
 
-		// Box2D positions are the center of the body: draw the texture around its center
 		Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
 		Rectangle dest = { (float)x, (float)y, (float)texture.width, (float)texture.height };
 		Vector2 origin = { (float)texture.width / 2.0f, (float)texture.height / 2.0f };
@@ -453,7 +432,6 @@ public:
 		: PhysicEntity(physics->CreateRectangle(_x, _y, 50, 25))
 		, texture(_texture)
 	{
-
 	}
 
 	void Update() override
@@ -477,24 +455,14 @@ class Chain : public PhysicEntity
 {
 public:
 	static constexpr int points[24] = {
-		-38, 80,
-		-44, -54,
-		-16, -60,
-		-16, -17,
-		19, -19,
-		19, -79,
-		61, -77,
-		57, 73,
-		17, 78,
-		20, 16,
-		-25, 13,
-		-9, 72
+		-38, 80, -44, -54, -16, -60, -16, -17,
+		19, -19, 19, -79, 61, -77, 57, 73,
+		17, 78, 20, 16, -25, 13, -9, 72
 	};
 
 	Chain(ModulePhysics* physics, int _x, int _y)
 		: PhysicEntity(physics->CreateChain(_x, _y, points, 24))
 	{
-
 	}
 
 	void Update() override
@@ -506,47 +474,21 @@ public:
 class Rick : public PhysicEntity
 {
 public:
-	// Pivot 0, 0
 	static constexpr int rick_head[64] = {
-		14, 36,
-		42, 40,
-		40, 0,
-		75, 30,
-		88, 4,
-		94, 39,
-		111, 36,
-		104, 58,
-		107, 62,
-		117, 67,
-		109, 73,
-		110, 85,
-		106, 91,
-		109, 99,
-		103, 104,
-		100, 115,
-		106, 121,
-		103, 125,
-		98, 126,
-		95, 137,
-		83, 147,
-		67, 147,
-		53, 140,
-		46, 132,
-		34, 136,
-		38, 126,
-		23, 123,
-		30, 114,
-		10, 102,
-		29, 90,
-		0, 75,
-		30, 62
+		14, 36, 42, 40, 40, 0, 75, 30,
+		88, 4, 94, 39, 111, 36, 104, 58,
+		107, 62, 117, 67, 109, 73, 110, 85,
+		106, 91, 109, 99, 103, 104, 100, 115,
+		106, 121, 103, 125, 98, 126, 95, 137,
+		83, 147, 67, 147, 53, 140, 46, 132,
+		34, 136, 38, 126, 23, 123, 30, 114,
+		10, 102, 29, 90, 0, 75, 30, 62
 	};
 
 	Rick(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
 		: PhysicEntity(physics->CreateChain(_x, _y, rick_head, 64))
 		, texture(_texture)
 	{
-
 	}
 
 	void Update() override
@@ -554,7 +496,6 @@ public:
 		int x, y;
 		body->GetPosition(x, y);
 
-		// Chains have no volume: Contains() is never true for them
 		Color tint = body->Contains(GetMouseX(), GetMouseY()) ? RED : WHITE;
 
 		DrawTextureEx(texture, Vector2{ (float)x, (float)y }, body->GetRotation() * RAD2DEG, 1.0f, tint);
@@ -572,9 +513,9 @@ ModuleGame::ModuleGame(Application* app, bool start_enabled) : Module(app, start
 }
 
 ModuleGame::~ModuleGame()
-{}
+{
+}
 
-// Load assets
 bool ModuleGame::Start()
 {
 	LOG("Loading Intro assets");
@@ -588,14 +529,12 @@ bool ModuleGame::Start()
 
 	bonus_fx = App->audio->LoadFx("Assets/bonus.wav");
 
-	// Sensor at the bottom of the screen
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH / 2, 25);
 	sensor->listener = this;
 
 	return ret;
 }
 
-// Unload assets
 bool ModuleGame::CleanUp()
 {
 	LOG("Unloading Intro scene");
@@ -612,10 +551,8 @@ bool ModuleGame::CleanUp()
 	return true;
 }
 
-// Update: draw background
 update_status ModuleGame::Update()
 {
-	// Destroy the bodies that touched the sensor
 	for (PhysBody* body : bodies_to_destroy)
 	{
 		for (PhysicEntity* entity : entities)
@@ -644,26 +581,16 @@ update_status ModuleGame::Update()
 	}
 
 	if (IsKeyPressed(KEY_TWO))
-	{
 		entities.push_back(new Box(App->physics, GetMouseX(), GetMouseY(), box));
-	}
 
 	if (IsKeyPressed(KEY_THREE))
-	{
 		entities.push_back(new Chain(App->physics, GetMouseX(), GetMouseY()));
-	}
 
 	if (IsKeyPressed(KEY_FOUR))
-	{
 		entities.push_back(new Rick(App->physics, GetMouseX(), GetMouseY(), rick));
-	}
 
 	if (IsKeyPressed(KEY_BACKSPACE))
-	{
 		DestroyAllEntities();
-	}
-
-	// Prepare for raycast ------------------------------------------------------
 
 	vec2i mouse;
 	mouse.x = GetMouseX();
@@ -672,13 +599,10 @@ update_status ModuleGame::Update()
 
 	vec2f normal(0.0f, 0.0f);
 
-	// All draw functions ------------------------------------------------------
-
 	for (PhysicEntity* entity : entities)
 	{
 		entity->Update();
 
-		// Keep the closest hit
 		if (ray_on)
 		{
 			vec2f hit_normal(0.0f, 0.0f);
@@ -691,7 +615,6 @@ update_status ModuleGame::Update()
 		}
 	}
 
-	// ray -----------------
 	if (ray_on == true)
 	{
 		vec2f destination((float)(mouse.x - ray.x), (float)(mouse.y - ray.y));
@@ -709,14 +632,10 @@ update_status ModuleGame::Update()
 	return UPDATE_CONTINUE;
 }
 
-// Circles play bonus_fx when they collide
 void ModuleGame::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 {
-	// Bodies that touch the sensor are destroyed
 	if (bodyA == sensor)
 	{
-		// Never destroy bodies inside a collision callback: the world is locked
-		// Keep them in a list and destroy them in Update()
 		if (bodyB != NULL && std::find(bodies_to_destroy.begin(), bodies_to_destroy.end(), bodyB) == bodies_to_destroy.end())
 			bodies_to_destroy.push_back(bodyB);
 		return;
@@ -745,3 +664,5 @@ void ModuleGame::DestroyAllEntities()
 	entities.clear();
 	bodies_to_destroy.clear();
 }
+
+#endif // PLANTILLA
