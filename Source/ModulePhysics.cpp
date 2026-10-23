@@ -97,7 +97,7 @@ bool ModulePhysics::Start()
 	//Object 1
 
 	float DisplaceFlipperX = PIXEL_TO_METERS(x-120);
-	float DisplaceFlipperY = PIXEL_TO_METERS(y +110);
+	float DisplaceFlipperY = PIXEL_TO_METERS(y +120);
 
 	//Body
 	b2BodyDef B1;
@@ -213,17 +213,17 @@ bool ModulePhysics::Start()
 	body4->CreateFixture(&F4);
 
 
-	//Creacion de los Bumpers
+		//Creacion de los Bumpers
 	//Meterle Restituition en la Fixture Fuerzaaaaaaa!!!!!!!!!!! Tocho
 
 	b2BodyDef BB;
 	BB.type = b2_staticBody;
-	BB.position.Set(PIXEL_TO_METERS(x - 400), PIXEL_TO_METERS(y - 100));
+	BB.position.Set(PIXEL_TO_METERS(x -15), PIXEL_TO_METERS(y - 205));
 	b2Body* bumper = world->CreateBody(&BB);
 
 	//Shape
 	b2CircleShape SB;
-	SB.m_radius =(PIXEL_TO_METERS(50));
+	SB.m_radius =(PIXEL_TO_METERS(30));
 
 
 	//Fixture
