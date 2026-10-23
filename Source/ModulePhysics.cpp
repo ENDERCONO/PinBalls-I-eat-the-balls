@@ -14,7 +14,6 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	mouse_joint = NULL;
 	flipper_joint = NULL;   // <-- nuevo JONATHAN
 	debug = true;
-	flipper_joint = NULL;
 	kicker_joint = NULL;
 	//Friccion
 	frictionBody = NULL;
@@ -92,10 +91,12 @@ bool ModulePhysics::Start()
 
 	//Object 1
 
+	int DisplaceFlipperX = PIXEL_TO_METERS(x-200);
+
 	//Body
 	b2BodyDef B1;
 	B1.type = b2_staticBody;
-	B1.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+	B1.position.Set(DisplaceFlipperX, PIXEL_TO_METERS(y));
 	b2Body* body1 = world->CreateBody(&B1);
 
 	//Shape
@@ -113,7 +114,7 @@ bool ModulePhysics::Start()
 	//Body
 	b2BodyDef B2;
 	B2.type = b2_dynamicBody;
-	B2.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+	B2.position.Set(DisplaceFlipperX, PIXEL_TO_METERS(y));
 	b2Body* body2 = world->CreateBody(&B2);
 
 	//Shape
@@ -188,7 +189,7 @@ bool ModulePhysics::Start()
 	//Fixture
 	b2FixtureDef FB;
 	FB.shape = &SB;
-	FB.restitution = 1.0f;//mas de 1 debuelve fuerza
+	FB.restitution = 17.0f;//mas de 1 debuelve fuerza
 	bumper->CreateFixture(&FB);
 
 
@@ -327,7 +328,7 @@ update_status ModulePhysics::PreUpdate()
 
 	//-------------------------------------------------------------------------
 	//Mecanica de subida
-	if (IsKeyDown(KEY_Q))
+	if (IsKeyDown(KEY_A))
 	{
 		flipper_joint->SetMotorSpeed(-7000.0f);
 	}

@@ -532,6 +532,13 @@ bool ModuleGame::Start()
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH / 2, 25);
 	sensor->listener = this;
 
+	//Alejandro hoy, add textures for the table background
+	texBackground = LoadTexture("Assets/background.png");
+	texTable = LoadTexture("Assets/table.png");
+	SetTextureFilter(texBackground, TEXTURE_FILTER_POINT); //nearest, so the pixels stay sharp
+	SetTextureFilter(texTable, TEXTURE_FILTER_POINT);
+	//End of alejandro hoy
+
 	return ret;
 }
 
@@ -547,12 +554,28 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(circle);
 	UnloadTexture(box);
 	UnloadTexture(rick);
+	UnloadTexture(texBackground);
+	UnloadTexture(texTable);
 
 	return true;
 }
 
+//Alejandro Hoy
+void ModuleGame::drawMap() { //the images are half size, so the destination is double
+	Rectangle backgroundSource = { 0.0f, 0.0f, (float)texBackground.width, (float)texBackground.height };
+	Rectangle backgroundDest = { 0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT };
+	DrawTexturePro(texBackground, backgroundSource, backgroundDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+
+	Rectangle tableSource = { 0.0f, 0.0f, (float)texTable.width, (float)texTable.height };
+	Rectangle tableDest = { (float)tableX, 0.0f, (float)tableWidth, (float)tableHeight };
+	DrawTexturePro(texTable, tableSource, tableDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+}
+//Alejandro Hoy END
 update_status ModuleGame::Update()
 {
+	drawMap(); //first, everything else is drawn on top of it
+	return UPDATE_CONTINUE;
+
 	for (PhysBody* body : bodies_to_destroy)
 	{
 		for (PhysicEntity* entity : entities)
