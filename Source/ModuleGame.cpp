@@ -523,7 +523,7 @@ bool ModuleGame::Start()
 
 	App->renderer->camera.x = App->renderer->camera.y = 0;
 
-	circle = LoadTexture("Assets/wheel.png");
+	circle = LoadTexture("Assets/ball.png");
 	box = LoadTexture("Assets/crate.png");
 	rick = LoadTexture("Assets/rick_head.png");
 
@@ -535,9 +535,12 @@ bool ModuleGame::Start()
 	//Alejandro hoy, add textures for the table background
 	texBackground = LoadTexture("Assets/background.png");
 	texTable = LoadTexture("Assets/table.png");
-	SetTextureFilter(texBackground, TEXTURE_FILTER_POINT); //nearest, so the pixels stay sharp
+	SetTextureFilter(texBackground, TEXTURE_FILTER_POINT); //nearest filter (no bilinear), so the pixels stay sharp
 	SetTextureFilter(texTable, TEXTURE_FILTER_POINT);
+
+	buildWalls();
 	//End of alejandro hoy
+
 
 	return ret;
 }
@@ -547,7 +550,10 @@ bool ModuleGame::CleanUp()
 	LOG("Unloading Intro scene");
 
 	DestroyAllEntities();
-
+	//Alejandro Hoy
+	for (PhysBody* current : walls) { App->physics->DestroyBody(current); }
+	walls.clear();
+	//Alejandro Hoy End
 	App->physics->DestroyBody(sensor);
 	sensor = NULL;
 
@@ -560,7 +566,67 @@ bool ModuleGame::CleanUp()
 	return true;
 }
 
+
+
 //Alejandro Hoy
+
+void ModuleGame::buildWalls() { //outer shell, launch lane wall and right slope
+	//every node of the outer wall, x and y in table coordinates, going from the lane bottom up, over the arc and down the left side
+	const int shell[] = {
+		490, 700, 
+		490, 250,
+		489, 229,
+		486, 208,
+		481, 187,
+		475, 167,
+		467, 148,
+		457, 130,
+		446, 112,
+		433, 95,
+		419, 80,
+		404, 66,
+		387, 53,
+		370, 42,
+		351, 32,
+		332, 24,
+		312, 18,
+		291, 13,
+		270, 10,
+		249, 10, 
+		229, 10,
+		208, 13,
+		187, 18,
+		167, 24,
+		148, 32,
+		129, 42,
+		112, 53,
+		95, 66,
+		80, 80,
+		66, 95,
+		53, 112,
+		42, 129,
+		32, 148,
+		24, 167,
+		18, 187,
+		13, 208,
+		10, 229,
+		10, 250,
+		10, 520,
+		126, 591
+	};
+	int shellSize = sizeof(shell) / sizeof(int); //number of int vars, 80
+	walls.push_back(App->physics->CreateChain(tableX, 0, shell, shellSize, false, wallRestitution, 0.1f));
+
+	//wall between the launching spring and pinball table
+	const int laneWall[] = { 455, 700, 455, 200 };
+	walls.push_back(App->physics->CreateChain(tableX, 0, laneWall, 4, false, wallRestitution, 0.1f));
+
+	//curve to the right flipper
+	const int rightGuide[] = { 455, 520, 338, 591 };
+	walls.push_back(App->physics->CreateChain(tableX, 0, rightGuide, 4, false, wallRestitution, 0.1f));
+}
+
+
 void ModuleGame::drawMap() { //the images are half size, so the destination is double
 	Rectangle backgroundSource = { 0.0f, 0.0f, (float)texBackground.width, (float)texBackground.height };
 	Rectangle backgroundDest = { 0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT };
@@ -574,7 +640,7 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 update_status ModuleGame::Update()
 {
 	//Alejandro Hoy
-	drawMap(); //first, everything else is drawn on top of it
+	drawMap(); 
 	
 	//Alejandro Hoy END
 

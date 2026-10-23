@@ -7,6 +7,9 @@
 
 #include <math.h>
 
+const float bumperKick = 17.0f; //speed in m/s the bumper always throws the ball at
+const float bumperMinSpeed = 0.5f; //so we never divide by zero when the ball is almost still
+
 ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app, start_enabled)
 {
 	world = NULL;
@@ -18,6 +21,7 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	//Friccion
 	frictionBody = NULL;
 	flipper_joint_right = NULL;
+	bumperBody = NULL;
 }
 
 // Destructor
@@ -123,7 +127,7 @@ bool ModulePhysics::Start()
 	b2PolygonShape S2;
 
 	//Con cambio de offSet 
-	S2.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(5),
+	S2.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(8),
 		b2Vec2(PIXEL_TO_METERS(40), 0), 0);
 
 	//Fixture
@@ -157,7 +161,7 @@ bool ModulePhysics::Start()
 
 	//Shape FLIPPER RIGHT: positive size, the offset puts it on the left of the pivot
 	b2PolygonShape ShapeRIGHT;
-	ShapeRIGHT.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(5),
+	ShapeRIGHT.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(8),
 		b2Vec2(PIXEL_TO_METERS(-40), 0), 0);
 
 	//Fixture
@@ -225,8 +229,9 @@ bool ModulePhysics::Start()
 	//Fixture
 	b2FixtureDef FB;
 	FB.shape = &SB;
-	FB.restitution = 17.0f;//mas de 1 debuelve fuerza
+	FB.restitution = 1.0f; //base value, PreSolve changes it for each hit
 	bumper->CreateFixture(&FB);
+	bumperBody = bumper;
 
 
 
@@ -347,14 +352,14 @@ update_status ModulePhysics::PreUpdate()
 	{
 		flipper_joint->SetMotorSpeed(-7000.0f);
 	}
-	else flipper_joint->SetMotorSpeed(5.0f);
+	else flipper_joint->SetMotorSpeed(4.0f);
 
 	//FLipper Right
 	if (IsKeyDown(KEY_D))
 	{
 		flipper_joint_right->SetMotorSpeed(7000.0f); //positive turns the opposite way than the left one
 	}
-	else flipper_joint_right->SetMotorSpeed(-5.0f);
+	else flipper_joint_right->SetMotorSpeed(-4.0f);
 
 	//--------------------------------------------------------
 	//Mecanica del Prismatic Joint
@@ -631,7 +636,7 @@ PhysBody* ModulePhysics::CreateRectangleSensor(int x, int y, int half_width, int
 }
 
 // size is the number of ints, not vertices
-PhysBody* ModulePhysics::CreateChain(int x, int y, const int* points, int size)
+PhysBody* ModulePhysics::CreateChain(int x, int y, const int* points, int size, bool loop, float restitution, float friction)
 {
 	PhysBody* pbody = new PhysBody();
 
@@ -640,27 +645,29 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, const int* points, int size)
 	body.userData.pointer = reinterpret_cast<uintptr_t>(pbody);
 
 	b2Body* b = world->CreateBody(&body);
-
+	//Alejandro Hoy
 	int count = size / 2;
-	b2Vec2* vertices = new b2Vec2[count];
-	for (int i = 0; i < count; ++i)
-	{
-		vertices[i].x = PIXEL_TO_METERS(points[i * 2 + 0]);
-		vertices[i].y = PIXEL_TO_METERS(points[i * 2 + 1]);
+	int segments = loop ? count : count - 1; //an open chain has one segment less
+	//So we have hole for death
+
+	for (int i = 0; i < segments; ++i) {
+		int next = (i + 1) % count;
+		b2Vec2 start(PIXEL_TO_METERS(points[i * 2]), PIXEL_TO_METERS(points[i * 2 + 1]));
+		b2Vec2 end(PIXEL_TO_METERS(points[next * 2]), PIXEL_TO_METERS(points[next * 2 + 1]));
+
+		b2EdgeShape edge;
+		edge.SetTwoSided(start, end); //collides from both sides
+
+		b2FixtureDef fixture;
+		fixture.shape = &edge;
+		fixture.restitution = restitution;
+		fixture.friction = friction;
+		b->CreateFixture(&fixture);
 	}
 
-	b2ChainShape shape;
-	shape.CreateLoop(vertices, count);
-	delete[] vertices; // CreateLoop copies the vertices
-
-	b2FixtureDef fixture;
-	fixture.shape = &shape;
-	b->CreateFixture(&fixture);
-
 	pbody->body = b;
-
 	return pbody;
-}
+}//Alejandro Hoy End
 
 void ModulePhysics::DestroyBody(PhysBody* pbody)
 {
@@ -672,7 +679,7 @@ void ModulePhysics::DestroyBody(PhysBody* pbody)
 		mouse_joint = NULL;
 
 	world->DestroyBody(pbody->body); // Box2D frees the body and its fixtures
-	delete pbody;                    // we free our own wrapper
+	delete pbody; // we free our own wrapper
 }
 
 // Call the listeners that are not NULL
@@ -687,6 +694,26 @@ void ModulePhysics::BeginContact(b2Contact* contact)
 	if (b != NULL && b->listener != NULL)
 		b->listener->OnCollision(b, a);
 }
+//Alejandro Hoy
+void ModulePhysics::PreSolve(b2Contact* contact, const b2Manifold* oldManifold) { //sets the bounciness of this hit, restitution = kick / speed
+	if (bumperBody == NULL) { return; }
+
+	b2Body* bodyA = contact->GetFixtureA()->GetBody();
+	b2Body* bodyB = contact->GetFixtureB()->GetBody();
+
+	b2Body* other = NULL; //the object that hit the bumper
+	if (bodyA == bumperBody) { other = bodyB; }
+	else if (bodyB == bumperBody) { other = bodyA; }
+	else { return; } //not a bumper hit
+	
+	float speed = other->GetLinearVelocity().Length();
+	if (speed < bumperMinSpeed) { speed = bumperMinSpeed; }
+
+	contact->SetRestitution(bumperKick / speed); //1 / speed * constant = constant / speed
+	contact->SetRestitutionThreshold(0.0f); //Threshold for Box2d Restitution
+}
+//Alejandro Hoy End
+
 
 // PhysBody ------------------------------------
 void PhysBody::GetPosition(int& x, int& y) const

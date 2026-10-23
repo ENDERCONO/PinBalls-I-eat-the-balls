@@ -50,11 +50,12 @@ public:
 	PhysBody* CreateCircle(int x, int y, int radius);
 	PhysBody* CreateRectangle(int x, int y, int half_width, int half_height);
 	PhysBody* CreateRectangleSensor(int x, int y, int half_width, int half_height);
-	PhysBody* CreateChain(int x, int y, const int* points, int size);
+	PhysBody* CreateChain(int x, int y, const int* points, int size, bool loop = true, float restitution = 0.0f, float friction = 0.2f);
 
 	void DestroyBody(PhysBody* pbody);
 
 	void BeginContact(b2Contact* contact) override;
+
 
 private:
 
@@ -74,4 +75,7 @@ private:
 	//Intento de ojeto que relentiza
 	//Creamos un objeto y luego ya le damos el valor de otro objeto
 	b2Body* frictionBody;
+
+	b2Body* bumperBody;
+	void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
 };

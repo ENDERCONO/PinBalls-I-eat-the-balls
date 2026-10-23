@@ -11,6 +11,7 @@
 const int tableWidth = 500; //Alejandro hoy, size of table
 const int tableHeight = 720;
 const int tableX = (SCREEN_WIDTH - tableWidth) / 2; //table is centered in the window
+const float wallRestitution = 0.25f;
 
 class PhysBody;
 class PhysicEntity;
@@ -88,6 +89,9 @@ public:
 	Texture2D texBackground;
 	Texture2D texTable;
 	void drawMap();
+
+	void buildWalls();
+	std::vector<PhysBody*> walls; //to free them in CleanUp
 
 private:
 	// ---- PLANTILLA (activo) ----
