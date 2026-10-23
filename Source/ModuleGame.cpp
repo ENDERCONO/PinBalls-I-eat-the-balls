@@ -403,7 +403,7 @@ class Circle : public PhysicEntity
 {
 public:
 	Circle(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
-		: PhysicEntity(physics->CreateCircle(_x, _y, 25))
+		: PhysicEntity(physics->CreateCircle(_x, _y, 11))
 		, texture(_texture)
 	{
 	}
@@ -416,8 +416,8 @@ public:
 		Color tint = body->Contains(GetMouseX(), GetMouseY()) ? RED : WHITE;
 
 		Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
-		Rectangle dest = { (float)x, (float)y, (float)texture.width, (float)texture.height };
-		Vector2 origin = { (float)texture.width / 2.0f, (float)texture.height / 2.0f };
+		Rectangle dest = { (float)x, (float)y, (float)22.0f, (float)22.0f };
+		Vector2 origin = { (float)11.0f, (float)11.0f };
 		DrawTexturePro(texture, source, dest, origin, body->GetRotation() * RAD2DEG, tint);
 	}
 
@@ -573,8 +573,10 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 //Alejandro Hoy END
 update_status ModuleGame::Update()
 {
+	//Alejandro Hoy
 	drawMap(); //first, everything else is drawn on top of it
-	return UPDATE_CONTINUE;
+	
+	//Alejandro Hoy END
 
 	for (PhysBody* body : bodies_to_destroy)
 	{

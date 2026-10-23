@@ -17,6 +17,7 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	kicker_joint = NULL;
 	//Friccion
 	frictionBody = NULL;
+	flipper_joint_right = NULL;
 }
 
 // Destructor
@@ -91,17 +92,18 @@ bool ModulePhysics::Start()
 
 	//Object 1
 
-	int DisplaceFlipperX = PIXEL_TO_METERS(x-200);
+	float DisplaceFlipperX = PIXEL_TO_METERS(x-120);
+	float DisplaceFlipperY = PIXEL_TO_METERS(y +110);
 
 	//Body
 	b2BodyDef B1;
 	B1.type = b2_staticBody;
-	B1.position.Set(DisplaceFlipperX, PIXEL_TO_METERS(y));
+	B1.position.Set(DisplaceFlipperX, DisplaceFlipperY);
 	b2Body* body1 = world->CreateBody(&B1);
 
 	//Shape
 	b2CircleShape S1;
-	S1.m_radius = PIXEL_TO_METERS(15);
+	S1.m_radius = PIXEL_TO_METERS(1);
 
 	//Fixture
 	b2FixtureDef F1;
@@ -109,20 +111,20 @@ bool ModulePhysics::Start()
 	body1->CreateFixture(&F1);
 
 
-	//Object 2
+		//Object 2
 
 	//Body
 	b2BodyDef B2;
 	B2.type = b2_dynamicBody;
-	B2.position.Set(DisplaceFlipperX, PIXEL_TO_METERS(y));
+	B2.position.Set(DisplaceFlipperX, DisplaceFlipperY);
 	b2Body* body2 = world->CreateBody(&B2);
 
 	//Shape
 	b2PolygonShape S2;
 
 	//Con cambio de offSet 
-	S2.SetAsBox(PIXEL_TO_METERS(100), PIXEL_TO_METERS(15),
-		b2Vec2(PIXEL_TO_METERS(100), 0), 0);
+	S2.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(5),
+		b2Vec2(PIXEL_TO_METERS(40), 0), 0);
 
 	//Fixture
 	b2FixtureDef F2;
@@ -130,7 +132,41 @@ bool ModulePhysics::Start()
 	F2.density = 1.0f;
 	body2->CreateFixture(&F2);
 
+		//Object 2 FLIPPER RIGHT
 
+	//Pivot of the right flipper (static), mirrored from the left one
+	float DisplaceFlipperRightX = PIXEL_TO_METERS(x + 85);
+
+	b2BodyDef PivotRightDef;
+	PivotRightDef.type = b2_staticBody;
+	PivotRightDef.position.Set(DisplaceFlipperRightX, DisplaceFlipperY);
+	b2Body* pivotRight = world->CreateBody(&PivotRightDef);
+
+	b2CircleShape PivotRightShape;
+	PivotRightShape.m_radius = PIXEL_TO_METERS(1);
+
+	b2FixtureDef PivotRightFixture;
+	PivotRightFixture.shape = &PivotRightShape;
+	pivotRight->CreateFixture(&PivotRightFixture);
+
+	//Body FLIPPER RIGHT
+	b2BodyDef BodyRight;
+	BodyRight.type = b2_dynamicBody;
+	BodyRight.position.Set(DisplaceFlipperRightX, DisplaceFlipperY);
+	b2Body* BodyRight2 = world->CreateBody(&BodyRight);
+
+	//Shape FLIPPER RIGHT: positive size, the offset puts it on the left of the pivot
+	b2PolygonShape ShapeRIGHT;
+	ShapeRIGHT.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(5),
+		b2Vec2(PIXEL_TO_METERS(-40), 0), 0);
+
+	//Fixture
+	b2FixtureDef FixtureRight;
+	FixtureRight.shape = &ShapeRIGHT;
+	FixtureRight.density = 1.0f;
+	BodyRight2->CreateFixture(&FixtureRight);
+
+		// END HERE FLIPPER RIGHT
 
 
 	//Objects for the Kicker
@@ -242,6 +278,25 @@ bool ModulePhysics::Start()
 
 	flipper_joint = (b2RevoluteJoint*)world->CreateJoint(&jointDef1);
 
+	//---------------------------------------------------------
+
+	//RIGHT JOINT
+
+		//RevoluteJoint of the right flipper: mirror of the left one, so the limits are 0 to +45
+	b2RevoluteJointDef jointDefRight;
+	jointDefRight.Initialize(pivotRight, BodyRight2, pivotRight->GetWorldCenter());
+
+	jointDefRight.enableLimit = true;
+	jointDefRight.lowerAngle = 0.0f;            //rest
+	jointDefRight.upperAngle = 0.25f * b2_pi;   //+45 (up)
+
+	jointDefRight.enableMotor = true;
+	jointDefRight.maxMotorTorque = 800.0f;
+	jointDefRight.motorSpeed = 0.0f;
+
+	flipper_joint_right = (b2RevoluteJoint*)world->CreateJoint(&jointDefRight);
+
+
 	//-------------------------------------------------------------------
 
 
@@ -266,47 +321,7 @@ bool ModulePhysics::Start()
 	  //Creacion del joint y guardado
 	kicker_joint = (b2PrismaticJoint*)world->CreateJoint(&jointDef2);
 
-
-
 //-----------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -334,7 +349,12 @@ update_status ModulePhysics::PreUpdate()
 	}
 	else flipper_joint->SetMotorSpeed(5.0f);
 
-
+	//FLipper Right
+	if (IsKeyDown(KEY_D))
+	{
+		flipper_joint_right->SetMotorSpeed(7000.0f); //positive turns the opposite way than the left one
+	}
+	else flipper_joint_right->SetMotorSpeed(-5.0f);
 
 	//--------------------------------------------------------
 	//Mecanica del Prismatic Joint

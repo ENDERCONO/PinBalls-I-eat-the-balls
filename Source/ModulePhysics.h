@@ -67,6 +67,7 @@ private:
 
 	//Creacion de los Joints para poderlos modificar
 	b2RevoluteJoint* flipper_joint;
+	b2RevoluteJoint* flipper_joint_right;
 	b2PrismaticJoint* kicker_joint;
 
 
