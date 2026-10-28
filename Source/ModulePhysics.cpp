@@ -22,6 +22,11 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	frictionBody = NULL;
 	flipper_joint_right = NULL;
 	bumperBody = NULL;
+
+
+	//triangulo
+	slingL = NULL;
+	slingR = NULL;
 }
 
 // Destructor
@@ -123,12 +128,24 @@ bool ModulePhysics::Start()
 	B2.position.Set(DisplaceFlipperX, DisplaceFlipperY);
 	b2Body* body2 = world->CreateBody(&B2);
 
-	//Shape
-	b2PolygonShape S2;
 
-	//Con cambio de offSet 
-	S2.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(8),
-		b2Vec2(PIXEL_TO_METERS(40), 0), 0);
+
+	//28/10
+	// 
+	//Shape
+
+	b2Vec2 flipperVerts[8];
+	flipperVerts[0].Set(PIXEL_TO_METERS(-6), PIXEL_TO_METERS(-6));
+	flipperVerts[1].Set(PIXEL_TO_METERS(0), PIXEL_TO_METERS(-9));
+	flipperVerts[2].Set(PIXEL_TO_METERS(60), PIXEL_TO_METERS(-4));
+	flipperVerts[3].Set(PIXEL_TO_METERS(80), PIXEL_TO_METERS(-2));
+	flipperVerts[4].Set(PIXEL_TO_METERS(80), PIXEL_TO_METERS(2));
+	flipperVerts[5].Set(PIXEL_TO_METERS(60), PIXEL_TO_METERS(4));
+	flipperVerts[6].Set(PIXEL_TO_METERS(0), PIXEL_TO_METERS(9));
+	flipperVerts[7].Set(PIXEL_TO_METERS(-6), PIXEL_TO_METERS(6));
+
+	b2PolygonShape S2;
+	S2.Set(flipperVerts, 8);
 
 	//Fixture
 	b2FixtureDef F2;
@@ -159,10 +176,19 @@ bool ModulePhysics::Start()
 	BodyRight.position.Set(DisplaceFlipperRightX, DisplaceFlipperY);
 	b2Body* BodyRight2 = world->CreateBody(&BodyRight);
 
-	//Shape FLIPPER RIGHT: positive size, the offset puts it on the left of the pivot
+	//Shape FLIPPER RIGHT:
+	b2Vec2 flipperVertsR[8];
+	flipperVertsR[0].Set(PIXEL_TO_METERS(6), PIXEL_TO_METERS(-6));
+	flipperVertsR[1].Set(PIXEL_TO_METERS(0), PIXEL_TO_METERS(-9));
+	flipperVertsR[2].Set(PIXEL_TO_METERS(-60), PIXEL_TO_METERS(-4));
+	flipperVertsR[3].Set(PIXEL_TO_METERS(-80), PIXEL_TO_METERS(-2));
+	flipperVertsR[4].Set(PIXEL_TO_METERS(-80), PIXEL_TO_METERS(2));
+	flipperVertsR[5].Set(PIXEL_TO_METERS(-60), PIXEL_TO_METERS(4));
+	flipperVertsR[6].Set(PIXEL_TO_METERS(0), PIXEL_TO_METERS(9));
+	flipperVertsR[7].Set(PIXEL_TO_METERS(6), PIXEL_TO_METERS(6));
+
 	b2PolygonShape ShapeRIGHT;
-	ShapeRIGHT.SetAsBox(PIXEL_TO_METERS(40), PIXEL_TO_METERS(8),
-		b2Vec2(PIXEL_TO_METERS(-40), 0), 0);
+	ShapeRIGHT.Set(flipperVertsR, 8);
 
 	//Fixture
 	b2FixtureDef FixtureRight;
@@ -179,12 +205,12 @@ bool ModulePhysics::Start()
 	//Body
 	b2BodyDef B3;
 	B3.type = b2_staticBody;
-	B3.position.Set(PIXEL_TO_METERS(x+400), PIXEL_TO_METERS(y+100));
+	B3.position.Set(PIXEL_TO_METERS(x+226), PIXEL_TO_METERS(y+195));
 	b2Body* body3 = world->CreateBody(&B3);
 
 	//Shape
 	b2PolygonShape S3;
-	S3.SetAsBox(PIXEL_TO_METERS(50), PIXEL_TO_METERS(70));
+	S3.SetAsBox(PIXEL_TO_METERS(14), PIXEL_TO_METERS(10));
 
 
 	//Fixture
@@ -198,12 +224,12 @@ bool ModulePhysics::Start()
 		//Body
 	b2BodyDef B4;
 	B4.type = b2_dynamicBody;
-	B4.position.Set(PIXEL_TO_METERS(x+400), PIXEL_TO_METERS(y+100));
+	B4.position.Set(PIXEL_TO_METERS(x+226), PIXEL_TO_METERS(y+195));
 	b2Body* body4 = world->CreateBody(&B4);
 
 	//Shape
 	b2PolygonShape S4;
-	S4.SetAsBox(PIXEL_TO_METERS(50), PIXEL_TO_METERS(50));
+	S4.SetAsBox(PIXEL_TO_METERS(14), PIXEL_TO_METERS(10));
 
 
 	//Fixture
@@ -330,6 +356,59 @@ bool ModulePhysics::Start()
 
 
 
+	//Trianguilao
+
+	//------------------------TRIANGULOS (SLINGSHOTS)-----------------------
+
+//Izquierdo: angulo recto abajo a la izquierda
+	b2Vec2 slingVertsL[3];
+	slingVertsL[0].Set(PIXEL_TO_METERS(-25), PIXEL_TO_METERS(-35));
+	slingVertsL[1].Set(PIXEL_TO_METERS(-25), PIXEL_TO_METERS(35));
+	slingVertsL[2].Set(PIXEL_TO_METERS(30), PIXEL_TO_METERS(35));
+
+	b2BodyDef BSL;
+	BSL.type = b2_staticBody;
+	BSL.position.Set(PIXEL_TO_METERS(x - 105), PIXEL_TO_METERS(y - 97));
+	slingL = world->CreateBody(&BSL);
+
+	b2PolygonShape SSL;
+	SSL.Set(slingVertsL, 3);
+
+	b2FixtureDef FSL;
+	FSL.shape = &SSL;
+	slingL->CreateFixture(&FSL);
+
+	//Derecho: espejo (cambiamos el signo de las X)
+	b2Vec2 slingVertsR[3];
+	slingVertsR[0].Set(PIXEL_TO_METERS(25), PIXEL_TO_METERS(-35));
+	slingVertsR[1].Set(PIXEL_TO_METERS(25), PIXEL_TO_METERS(35));
+	slingVertsR[2].Set(PIXEL_TO_METERS(-30), PIXEL_TO_METERS(35));
+
+	b2BodyDef BSR;
+	BSR.type = b2_staticBody;
+	BSR.position.Set(PIXEL_TO_METERS(x + 100), PIXEL_TO_METERS(y - 99));
+	slingR = world->CreateBody(&BSR);
+
+	b2PolygonShape SSR;
+	SSR.Set(slingVertsR, 3);
+
+	b2FixtureDef FSR;
+	FSR.shape = &SSR;
+	slingR->CreateFixture(&FSR);
+
+	//--------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
 	return true;
 
 
@@ -365,7 +444,7 @@ update_status ModulePhysics::PreUpdate()
 	//Mecanica del Prismatic Joint
 	if (IsKeyDown(KEY_W))
 	{
-		kicker_joint->SetMotorSpeed(-10.0f);
+		kicker_joint->SetMotorSpeed(-20.0f);
 	}
 	else kicker_joint->SetMotorSpeed(5.0f);
 
@@ -396,6 +475,29 @@ update_status ModulePhysics::PreUpdate()
 
 
 		}
+	}
+
+
+
+
+	//28/10
+
+	//------------------------------
+//Slowdown de los triangulos (mismo codigo que la friccion)
+	float radSling = PIXEL_TO_METERS(60);
+
+	for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
+	{
+		if (b->GetType() != b2_dynamicBody)
+			continue;
+
+		b2Vec2 dL = b->GetPosition() - slingL->GetPosition();
+		if (dL.Length() < radSling)
+			b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
+
+		b2Vec2 dR = b->GetPosition() - slingR->GetPosition();
+		if (dR.Length() < radSling)
+			b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
 	}
 
 	//----------------------------

@@ -70,8 +70,9 @@ private:
 	b2RevoluteJoint* flipper_joint;
 	b2RevoluteJoint* flipper_joint_right;
 	b2PrismaticJoint* kicker_joint;
-
-
+	//Trianfgulo
+	b2Body* slingL;
+	b2Body* slingR;
 	//Intento de ojeto que relentiza
 	//Creamos un objeto y luego ya le damos el valor de otro objeto
 	b2Body* frictionBody;
