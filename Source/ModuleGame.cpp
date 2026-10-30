@@ -505,11 +505,20 @@ private:
 	Texture2D texture;
 };
 
-ModuleGame::ModuleGame(Application* app, bool start_enabled) : Module(app, start_enabled)
+ModuleGame::ModuleGame(Application* app, bool start_enabled) : Module(app, start_enabled) //constructor
 {
 	ray_on = false;
 	ray.x = ray.y = 0;
 	sensor = NULL;
+
+	//n
+	state = PLAYING;
+	ballsLeft = startingBalls;
+	currentBall = NULL;
+
+	score = 0;
+
+	//end of n
 }
 
 ModuleGame::~ModuleGame()
@@ -540,6 +549,10 @@ bool ModuleGame::Start()
 
 	buildWalls();
 	//End of alejandro hoy
+
+	//n
+	spawnBall();
+	
 
 
 	return ret;
@@ -626,6 +639,78 @@ void ModuleGame::buildWalls() { //outer shell, launch lane wall and right slope
 	walls.push_back(App->physics->CreateChain(tableX, 0, rightGuide, 4, false, wallRestitution, 0.1f));
 }
 
+//n (spawn ball on start)
+//n (spawn ball on start)
+void ModuleGame::spawnBall() { //new ball in the launch lane, bottom right of the table
+	if (state != PLAYING || currentBall != NULL) { return; } //only one ball at a time
+
+	Circle* newBall = new Circle(App->physics, tableX + 472, 400, circle);
+	//newBall->body->listener = this;
+	//newBall->body->body->SetLinearVelocity(b2Vec2(0.0f, -17.0f)); //-17.0 is spawn speed
+	entities.push_back(newBall);
+	currentBall = newBall->body;
+}
+
+void ModuleGame::ballLost() {
+	currentBall = NULL;
+	--ballsLeft;
+
+	if (ballsLeft <= 0) { state = GAME_OVER; return; }
+	spawnBall();
+}
+
+void ModuleGame::restart() { //start new game with 3 balls once again
+	score = 0; //reset points
+	DestroyAllEntities();
+	state = PLAYING;
+	ballsLeft = startingBalls;
+	spawnBall();
+}
+
+void ModuleGame::drawScorePanel() { //shows points panel on the left side of the screen
+	int centerX = tableX / 2;
+
+	Rectangle panel = { 30.0f, 40.0f, (float)(tableX - 60), 260.0f };
+	DrawRectangleRec(panel, Color{ 12, 10, 38, 235 });
+	DrawRectangleLinesEx(panel, 4.0f, Color{ 90, 220, 255, 255 });
+
+	const char* scoreLabel = "SCORE";
+	DrawText(scoreLabel, centerX - MeasureText(scoreLabel, 30) / 2, 70, 30, Color{ 150, 170, 210, 255 });
+
+	const char* scoreText = TextFormat("%06d", score);
+	DrawText(scoreText, centerX - MeasureText(scoreText, 60) / 2, 110, 60, Color{ 255, 230, 90, 255 });
+
+	const char* ballsLabel = "BALLS";
+	DrawText(ballsLabel, centerX - MeasureText(ballsLabel, 30) / 2, 200, 30, Color{ 150, 170, 210, 255 });
+
+	//one circle per ball, filled while you still have it
+	for (int i = 0; i < startingBalls; ++i) {
+		int circleX = centerX + (i - 1) * 50; //three circles centered
+		if (i < ballsLeft) { DrawCircle(circleX, 260, 14.0f, WHITE); }
+		else { DrawCircleLines(circleX, 260, 14.0f, Color{ 90, 100, 140, 255 }); }
+	}
+}
+
+void ModuleGame::drawGameOver() { //dark screen, GAME OVER and the TRY AGAIN button for pre-restart
+	int centerX = SCREEN_WIDTH / 2;
+
+	DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Color{ 0, 0, 0, 175 }); //makes screen dark (175 as alpha for transparency)
+
+	const char* title = "GAME OVER";
+	DrawText(title, centerX - MeasureText(title, gameOverTitleSize) / 2, gameOverTitleY, gameOverTitleSize, Color{ 255, 70, 90, 255 });
+
+	Rectangle button = { (float)(centerX - buttonWidth / 2), (float)buttonY, (float)buttonWidth, (float)buttonHeight };
+	bool hover = CheckCollisionPointRec(GetMousePosition(), button);
+
+	DrawRectangleRec(button, hover ? Color{ 255, 120, 210, 255 } : Color{ 22, 22, 22, 255 });
+	DrawRectangleLinesEx(button, 4.0f, WHITE);
+
+	const char* label = "TRY AGAIN";
+	DrawText(label, centerX - MeasureText(label, 40) / 2, buttonY + 20, 40, WHITE);
+
+	if ((hover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) || IsKeyPressed(KEY_ENTER)) { restart(); }
+}
+//end of "n"
 
 void ModuleGame::drawMap() { //the images are half size, so the destination is double
 	Rectangle backgroundSource = { 0.0f, 0.0f, (float)texBackground.width, (float)texBackground.height };
@@ -644,18 +729,25 @@ update_status ModuleGame::Update()
 	
 	//Alejandro Hoy END
 
-	for (PhysBody* body : bodies_to_destroy)
-	{
-		for (PhysicEntity* entity : entities)
-		{
-			if (entity->body == body)
-			{
+	//other n
+	drawScorePanel();
+	//end of other n
+
+	//n ball dying and respawning update
+	bool ballDied = false;
+	for (PhysBody* body : bodies_to_destroy) {
+		for (PhysicEntity* entity : entities) {
+			if (entity->body == body) {
+				if (body == currentBall) { ballDied = true; }
 				DestroyEntity(entity);
 				break;
 			}
 		}
 	}
 	bodies_to_destroy.clear();
+
+	if (ballDied) { ballLost(); } //after the loop
+	//end of n
 
 	if (IsKeyPressed(KEY_SPACE))
 	{
@@ -720,6 +812,14 @@ update_status ModuleGame::Update()
 		}
 	}
 
+	//n
+	if (state == GAME_OVER) { drawGameOver(); }
+	
+	//points assign n
+	if (state == PLAYING) { score += App->physics->bumperHits * bumperPoints; }
+	App->physics->bumperHits = 0;
+	//end of n
+
 	return UPDATE_CONTINUE;
 }
 
@@ -747,6 +847,7 @@ void ModuleGame::DestroyEntity(PhysicEntity* entity)
 
 void ModuleGame::DestroyAllEntities()
 {
+	currentBall = NULL;
 	for (PhysicEntity* entity : entities)
 	{
 		App->physics->DestroyBody(entity->body);

@@ -12,6 +12,25 @@ const int tableWidth = 500; //Alejandro hoy, size of table
 const int tableHeight = 720;
 const int tableX = (SCREEN_WIDTH - tableWidth) / 2; //table is centered in the window
 const float wallRestitution = 0.25f;
+//n
+const int gameOverTitleY = 190;
+const int gameOverTitleSize = 80;
+const int buttonWidth = 320;
+const int buttonHeight = 80;
+const int buttonY = 400;
+//end of n
+//n
+const int startingBalls = 3;
+void restart();
+void drawGameOver();
+enum gameState { PLAYING, GAME_OVER };
+
+const int bumperPoints = 100;
+
+
+void drawScorePanel();
+
+//end of n
 
 class PhysBody;
 class PhysicEntity;
@@ -91,6 +110,24 @@ public:
 	void drawMap();
 
 	void buildWalls();
+
+	//n
+	void spawnBall();
+
+	gameState state;
+	int ballsLeft; 
+	PhysBody* currentBall; 
+
+	void ballLost();
+
+	void restart();
+	void drawGameOver();
+
+	void drawScorePanel();
+	int score;
+
+	// end of "n"
+
 	std::vector<PhysBody*> walls; //to free them in CleanUp
 
 private:

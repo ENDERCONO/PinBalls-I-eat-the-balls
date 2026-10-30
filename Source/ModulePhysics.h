@@ -55,7 +55,7 @@ public:
 	void DestroyBody(PhysBody* pbody);
 
 	void BeginContact(b2Contact* contact) override;
-
+	int bumperHits;//for countig points
 
 private:
 
@@ -76,6 +76,8 @@ private:
 	//Intento de ojeto que relentiza
 	//Creamos un objeto y luego ya le damos el valor de otro objeto
 	b2Body* frictionBody;
+
+	
 
 	b2Body* bumperBody;
 	void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;

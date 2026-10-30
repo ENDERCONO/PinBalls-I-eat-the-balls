@@ -23,10 +23,16 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	flipper_joint_right = NULL;
 	bumperBody = NULL;
 
+	bumperHits = 0; // counting points
 
 	//triangulo
-	slingL = NULL;
+	
 	slingR = NULL;
+	
+	//n
+	slingL = NULL; slingR = NULL;
+	//end of n
+
 }
 
 // Destructor
@@ -787,6 +793,11 @@ void ModulePhysics::DestroyBody(PhysBody* pbody)
 // Call the listeners that are not NULL
 void ModulePhysics::BeginContact(b2Contact* contact)
 {
+
+	b2Body* bodyA = contact->GetFixtureA()->GetBody();
+	b2Body* bodyB = contact->GetFixtureB()->GetBody();
+	if (bumperBody != NULL && (bodyA == bumperBody || bodyB == bumperBody)) { ++bumperHits; } //math for points
+
 	PhysBody* a = (PhysBody*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
 	PhysBody* b = (PhysBody*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
 
