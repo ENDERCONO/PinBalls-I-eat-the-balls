@@ -37,7 +37,7 @@ bool ModuleWindow::Init()
     LOG("Init raylib window");
 
     SetConfigFlags(flags);
-	SetTargetFPS(60);
+	SetTargetFPS(120);
 	InitWindow(width, height, TITLE);
 
 	return ret;

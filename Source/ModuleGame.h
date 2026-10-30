@@ -107,6 +107,9 @@ public:
 	//inside the class
 	Texture2D texBackground;
 	Texture2D texTable;
+	//N agregado para los assets del kicker y flipper
+	Texture2D texKicker;
+	Texture2D texFlipper;
 	void drawMap();
 
 	void buildWalls();

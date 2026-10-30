@@ -544,8 +544,10 @@ bool ModuleGame::Start()
 	//Alejandro hoy, add textures for the table background
 	texBackground = LoadTexture("Assets/background.png");
 	texTable = LoadTexture("Assets/table.png");
+	texKicker = LoadTexture("Assets/kicker.png"); //N agregando kicker para cargar textura
 	SetTextureFilter(texBackground, TEXTURE_FILTER_POINT); //nearest filter (no bilinear), so the pixels stay sharp
 	SetTextureFilter(texTable, TEXTURE_FILTER_POINT);
+	SetTextureFilter(texKicker, TEXTURE_FILTER_POINT); //N kicker
 
 	buildWalls();
 	//End of alejandro hoy
@@ -575,6 +577,7 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(rick);
 	UnloadTexture(texBackground);
 	UnloadTexture(texTable);
+	UnloadTexture(texKicker);	//N kicker
 
 	return true;
 }
@@ -720,6 +723,16 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 	Rectangle tableSource = { 0.0f, 0.0f, (float)texTable.width, (float)texTable.height };
 	Rectangle tableDest = { (float)tableX, 0.0f, (float)tableWidth, (float)tableHeight };
 	DrawTexturePro(texTable, tableSource, tableDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+
+	//N kickers (los pongo aquí ya que es una posición fija)
+	float kickerW = (float)texKicker.width;
+	float kickerH = (float)texKicker.height;
+
+	Rectangle kickerLeftDest = { (float)(tableX + 114), 341.0f, kickerW * 2.0f, kickerH * 2.0f };
+	DrawTexturePro(texKicker, Rectangle{ 0.0f, 0.0f, kickerW, kickerH }, kickerLeftDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+
+	Rectangle kickerRightDest = { (float)(tableX + 308), 341.0f, kickerW * 2.0f, kickerH * 2.0f };
+	DrawTexturePro(texKicker, Rectangle{ 0.0f, 0.0f, -kickerW, kickerH }, kickerRightDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
 }
 //Alejandro Hoy END
 update_status ModuleGame::Update()

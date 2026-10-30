@@ -310,8 +310,8 @@ bool ModulePhysics::Start()
 
 	//Implementamos el Torque, basicamente que tenga una reaccion al interactuar con onbjetos
 	jointDef1.enableMotor = true;
-	jointDef1.maxMotorTorque = 800.0f;
-	jointDef1.motorSpeed = 800.0f;
+	jointDef1.maxMotorTorque = 50.0f;
+	jointDef1.motorSpeed = 50.0f;
 
 	flipper_joint = (b2RevoluteJoint*)world->CreateJoint(&jointDef1);
 
@@ -328,8 +328,8 @@ bool ModulePhysics::Start()
 	jointDefRight.upperAngle = 0.25f * b2_pi;   //+45 (up)
 
 	jointDefRight.enableMotor = true;
-	jointDefRight.maxMotorTorque = 800.0f;
-	jointDefRight.motorSpeed = 0.0f;
+	jointDefRight.maxMotorTorque = 50.0f;
+	jointDefRight.motorSpeed = 50.0f;
 
 	flipper_joint_right = (b2RevoluteJoint*)world->CreateJoint(&jointDefRight);
 
@@ -352,7 +352,7 @@ bool ModulePhysics::Start()
 	//Interaccion con objetos
 
 	jointDef2.enableMotor = true;
-	jointDef2.maxMotorForce = 800.0f;
+	jointDef2.maxMotorForce = 100.0f;
 	jointDef2.motorSpeed = 0.0f;
 
 	  //Creacion del joint y guardado
@@ -435,14 +435,14 @@ update_status ModulePhysics::PreUpdate()
 	//Mecanica de subida
 	if (IsKeyDown(KEY_A))
 	{
-		flipper_joint->SetMotorSpeed(-7000.0f);
+		flipper_joint->SetMotorSpeed(-300.0f);
 	}
 	else flipper_joint->SetMotorSpeed(4.0f);
 
 	//FLipper Right
 	if (IsKeyDown(KEY_D))
 	{
-		flipper_joint_right->SetMotorSpeed(7000.0f); //positive turns the opposite way than the left one
+		flipper_joint_right->SetMotorSpeed(300.0f); //positive turns the opposite way than the left one
 	}
 	else flipper_joint_right->SetMotorSpeed(-4.0f);
 
@@ -450,7 +450,7 @@ update_status ModulePhysics::PreUpdate()
 	//Mecanica del Prismatic Joint
 	if (IsKeyDown(KEY_W))
 	{
-		kicker_joint->SetMotorSpeed(-20.0f);
+		kicker_joint->SetMotorSpeed(-15.0f);
 	}
 	else kicker_joint->SetMotorSpeed(5.0f);
 
