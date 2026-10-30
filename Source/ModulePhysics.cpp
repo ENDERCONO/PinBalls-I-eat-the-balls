@@ -368,13 +368,13 @@ bool ModulePhysics::Start()
 
 //Izquierdo: angulo recto abajo a la izquierda
 	b2Vec2 slingVertsL[3];
-	slingVertsL[0].Set(PIXEL_TO_METERS(-25), PIXEL_TO_METERS(-35));
-	slingVertsL[1].Set(PIXEL_TO_METERS(-25), PIXEL_TO_METERS(35));
-	slingVertsL[2].Set(PIXEL_TO_METERS(30), PIXEL_TO_METERS(35));
+	slingVertsL[0].Set(PIXEL_TO_METERS(4), PIXEL_TO_METERS(4));
+	slingVertsL[1].Set(PIXEL_TO_METERS(4), PIXEL_TO_METERS(76));
+	slingVertsL[2].Set(PIXEL_TO_METERS(66), PIXEL_TO_METERS(110));
 
 	b2BodyDef BSL;
 	BSL.type = b2_staticBody;
-	BSL.position.Set(PIXEL_TO_METERS(x - 105), PIXEL_TO_METERS(y - 97));
+	BSL.position.Set(PIXEL_TO_METERS(x - 136), PIXEL_TO_METERS(y - 139));
 	slingL = world->CreateBody(&BSL);
 
 	b2PolygonShape SSL;
@@ -386,13 +386,13 @@ bool ModulePhysics::Start()
 
 	//Derecho: espejo (cambiamos el signo de las X)
 	b2Vec2 slingVertsR[3];
-	slingVertsR[0].Set(PIXEL_TO_METERS(25), PIXEL_TO_METERS(-35));
-	slingVertsR[1].Set(PIXEL_TO_METERS(25), PIXEL_TO_METERS(35));
-	slingVertsR[2].Set(PIXEL_TO_METERS(-30), PIXEL_TO_METERS(35));
+	slingVertsR[0].Set(PIXEL_TO_METERS(64), PIXEL_TO_METERS(4));
+	slingVertsR[1].Set(PIXEL_TO_METERS(64), PIXEL_TO_METERS(76));
+	slingVertsR[2].Set(PIXEL_TO_METERS(2), PIXEL_TO_METERS(110));
 
 	b2BodyDef BSR;
 	BSR.type = b2_staticBody;
-	BSR.position.Set(PIXEL_TO_METERS(x + 100), PIXEL_TO_METERS(y - 99));
+	BSR.position.Set(PIXEL_TO_METERS(x + 58), PIXEL_TO_METERS(y - 139));
 	slingR = world->CreateBody(&BSR);
 
 	b2PolygonShape SSR;
