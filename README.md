@@ -1,8 +1,8 @@
-# {Project Name}
+# {Pinball}
 
 ## Description
 
-{project description}
+Hemos creado un juego de pinball 2D desarrollado en C++ con raylib (gráficos, audio y entrada) y Box2D (motor de físicas). el proyecto tiene como objetivo: entender cómo se simula la física en el mundo de los videojuegos, donde aprendemos de los conceptos fundamentales y ajustar parametros fisicos para crear esa simulación física como gravedad, colisiones, densidad, rebotes, fricción, fuerzas, etc, que unen cuerpos entre sí, como flippers o el muelle de lanzamiento, y de comprender el funcionamiento de un motor de físicas box2d.
 
 ## Key Features
 
@@ -13,14 +13,18 @@
  
 ## Controls
 
- - {ControlsScheme}
+ - Flipper izquierdo: A / ←
+ - Flipper derecho: D / →
+ - Lanzar bola: 
+ - Reiniciar partida: R
+ - Salir: Esc
 
 ## Developers
 
- - {Dev01} - {Role(s)}
- - {Dev02} - {Role(s)}
- - {Dev03} - {Role(s)}
- - {Dev04} - {Role(s)}
+ - Alejandro
+ - Jonathan  
+ - Ruixuan Ji
+ - Sandra 
 
 ## License
 
