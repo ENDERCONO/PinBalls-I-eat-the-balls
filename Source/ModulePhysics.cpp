@@ -16,7 +16,9 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	ground = NULL;
 	mouse_joint = NULL;
 	flipper_joint = NULL;   // <-- nuevo JONATHAN
-	debug = true;
+
+	//N Modo debug
+	debug = false;
 	kicker_joint = NULL;
 	//Friccion
 	frictionBody = NULL;
@@ -52,15 +54,11 @@ bool ModulePhysics::Start()
 	world->SetContactListener(this);
 
 
-	/*
+	
 	// Needed to create joints like the mouse joint
 	b2BodyDef bd;
 	ground = world->CreateBody(&bd);
 
-	// Big circle in the middle of the screen
-	int x = (int)(SCREEN_WIDTH / 2);
-	int y = (int)(SCREEN_HEIGHT / 1.5f);
-	int diameter = SCREEN_WIDTH / 2;
 
 
 	/*
@@ -433,14 +431,14 @@ update_status ModulePhysics::PreUpdate()
 
 	//-------------------------------------------------------------------------
 	//Mecanica de subida
-	if (IsKeyDown(KEY_A))
+	if (IsKeyDown(KEY_A)||(IsKeyDown(KEY_LEFT)))
 	{
 		flipper_joint->SetMotorSpeed(-300.0f);
 	}
 	else flipper_joint->SetMotorSpeed(4.0f);
 
 	//FLipper Right
-	if (IsKeyDown(KEY_D))
+	if (IsKeyDown(KEY_D) || (IsKeyDown(KEY_RIGHT)))
 	{
 		flipper_joint_right->SetMotorSpeed(300.0f); //positive turns the opposite way than the left one
 	}
@@ -448,7 +446,7 @@ update_status ModulePhysics::PreUpdate()
 
 	//--------------------------------------------------------
 	//Mecanica del Prismatic Joint
-	if (IsKeyDown(KEY_W))
+	if (IsKeyDown(KEY_W) || (IsKeyDown(KEY_DOWN)))
 	{
 		kicker_joint->SetMotorSpeed(-15.0f);
 	}

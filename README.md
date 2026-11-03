@@ -19,6 +19,12 @@ Hemos creado un juego de pinball 2D desarrollado en C++ con raylib (gráficos, a
  - Reiniciar partida: R
  - Salir: Esc
 
+ ## Controls
+ - Flipper izquierdo: ←
+ - Flipper derecho: →
+ - Lanzar bola (kicker): ↓ (mantener y soltar)
+ - Debug: F1
+
 ## Developers
 
  - Alejandro
