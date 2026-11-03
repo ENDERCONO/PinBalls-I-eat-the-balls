@@ -549,6 +549,10 @@ bool ModuleGame::Start()
 	SetTextureFilter(texTable, TEXTURE_FILTER_POINT);
 	SetTextureFilter(texKicker, TEXTURE_FILTER_POINT); //N kicker
 
+	//N flippers
+	texFlipper = LoadTexture("Assets/flipper.png");
+	SetTextureFilter(texFlipper, TEXTURE_FILTER_POINT);
+
 	buildWalls();
 	//End of alejandro hoy
 
@@ -578,6 +582,7 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(texBackground);
 	UnloadTexture(texTable);
 	UnloadTexture(texKicker);	//N kicker
+	UnloadTexture(texFlipper);	//N flipper
 
 	return true;
 }
@@ -715,6 +720,32 @@ void ModuleGame::drawGameOver() { //dark screen, GAME OVER and the TRY AGAIN but
 }
 //end of "n"
 
+//N flippers (se tienen que dibujar)
+void ModuleGame::drawFlipper(b2Body* body, bool mirrored)
+{
+	//Si el cuerpo no existe
+	if (body == NULL) { return; }
+
+	//Posiciones de metros a pixeles
+	b2Vec2 pos = body->GetPosition();
+	float x = pos.x * PIXELS_PER_METER;
+	float y = pos.y * PIXELS_PER_METER;
+
+	//Recortar imagen (ya que hay un borde transparente)
+	float src_x = 1.0f, src_y = 1.0f, src_w = 51.0f, src_h = 14.0f;
+
+	//Hacemos que el sprite se estire hasta el tamaño de la colision
+	float dest_w = 86.0f, dest_h = 18.0f;
+	float pivot_x = 6.0f, pivot_y = 9.0f;
+
+	//Recortamos e invertimos para el flipper derecho
+	Rectangle source = { src_x, src_y, mirrored ? -src_w : src_w, src_h };
+	Rectangle dest = { x, y, dest_w, dest_h };
+	Vector2 origin = { mirrored ? (dest_w - pivot_x) : pivot_x, pivot_y };
+
+	DrawTexturePro(texFlipper, source, dest, origin, body->GetAngle() * RAD2DEG, WHITE);
+}
+
 void ModuleGame::drawMap() { //the images are half size, so the destination is double
 	Rectangle backgroundSource = { 0.0f, 0.0f, (float)texBackground.width, (float)texBackground.height };
 	Rectangle backgroundDest = { 0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT };
@@ -733,6 +764,10 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 
 	Rectangle kickerRightDest = { (float)(tableX + 308), 341.0f, kickerW * 2.0f, kickerH * 2.0f };
 	DrawTexturePro(texKicker, Rectangle{ 0.0f, 0.0f, -kickerW, kickerH }, kickerRightDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+
+	//N flippers (llamar a la funcion y dibujar flippers)
+	drawFlipper(App->physics->GetLeftFlipperBody(), false);
+	drawFlipper(App->physics->GetRightFlipperBody(), true);
 }
 //Alejandro Hoy END
 update_status ModuleGame::Update()

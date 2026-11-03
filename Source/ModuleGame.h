@@ -34,6 +34,7 @@ void drawScorePanel();
 
 class PhysBody;
 class PhysicEntity;
+class b2Body; //N he necesitado añadirlo para los flippers
 
 //Main
 #define TABLE_W 500
@@ -111,6 +112,8 @@ public:
 	Texture2D texKicker;
 	Texture2D texFlipper;
 	void drawMap();
+	//N dibuja el sprite del flipper siguiendo la posicion y el angulo de su cuerpo de colision
+	void drawFlipper(b2Body* body, bool mirrored);
 
 	void buildWalls();
 

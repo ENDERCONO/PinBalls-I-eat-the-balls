@@ -54,6 +54,10 @@ public:
 
 	void DestroyBody(PhysBody* pbody);
 
+	// N Devuelve el cuerpo fisico de cada flipper
+	b2Body* GetLeftFlipperBody()  const { return flipper_joint ? flipper_joint->GetBodyB() : NULL; }
+	b2Body* GetRightFlipperBody() const { return flipper_joint_right ? flipper_joint_right->GetBodyB() : NULL; }
+
 	void BeginContact(b2Contact* contact) override;
 	int bumperHits;//for countig points
 
