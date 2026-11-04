@@ -205,6 +205,12 @@ bool ModuleGame::Start()
 	texFlipper = LoadTexture("Assets/flipper.png");
 	SetTextureFilter(texFlipper, TEXTURE_FILTER_POINT);
 
+	//N fuente tipo "codigo" para el comentario del menu
+	//si el archivo no existe, raylib devuelve su fuente por defecto y todo sigue funcionando
+	commentFont = LoadFontEx("C:/Windows/Fonts/consola.ttf", 32, NULL, 0);
+	if (commentFont.texture.id != GetFontDefault().texture.id)
+		SetTextureFilter(commentFont.texture, TEXTURE_FILTER_BILINEAR);
+
 	buildWalls();
 	//End of alejandro hoy
 
@@ -235,6 +241,7 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(texTable);
 	UnloadTexture(texKicker);	//N kicker
 	UnloadTexture(texFlipper);	//N flipper
+	UnloadFont(commentFont);	//N fuente del comentario
 
 	return true;
 }
@@ -884,6 +891,16 @@ void ModuleGame::drawMenu()
 		DrawText(text, centerX - MeasureText(text, 36) / 2, 320 + i * 70, 36,
 			selected ? Color{ 255, 120, 210, 255 } : WHITE);
 	}
+
+	//N comentario estilo codigo con la condicion de victoria (debajo de EXIT)
+	Color commentColor = Color{ 87, 166, 74, 255 };   //verde de los comentarios de Visual Studio
+	const float commentSize = 24.0f;
+	const char* comment1 = TextFormat("// winScore = %d", winScore);
+	const char* comment2 = "// reach it to win!";
+	Vector2 size1 = MeasureTextEx(commentFont, comment1, commentSize, 1.0f);
+	Vector2 size2 = MeasureTextEx(commentFont, comment2, commentSize, 1.0f);
+	DrawTextEx(commentFont, comment1, Vector2{ centerX - size1.x / 2.0f, 530.0f }, commentSize, 1.0f, commentColor);
+	DrawTextEx(commentFont, comment2, Vector2{ centerX - size2.x / 2.0f, 530.0f + 30.0f }, commentSize, 1.0f, commentColor);
 
 	const char* hint = gameInProgress ? "UP/DOWN: move    ENTER: select    ESC: back to game"
 		: "UP/DOWN: move    ENTER: select";

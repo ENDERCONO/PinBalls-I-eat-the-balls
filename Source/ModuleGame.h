@@ -44,7 +44,7 @@ const float wallMinSpeed = 3.0f;        //velocidad minima de la bola para que l
 const float wallScoreCooldown = 0.1f;   //segundos entre dos toques de pared que puntuan
 
 //N puntuacion necesaria para ganar la partida
-const int   winScore = 200;
+const int   winScore = 3000;
 
 
 void drawScorePanel();
@@ -130,6 +130,8 @@ public:
 	//N agregado para los assets del kicker y flipper
 	Texture2D texKicker;
 	Texture2D texFlipper;
+	//N fuente tipo codigo para el comentario del menu (winScore)
+	Font commentFont{};
 	void drawMap();
 	//N dibuja el sprite del flipper siguiendo la posicion y el angulo de su cuerpo de colision
 	void drawFlipper(b2Body* body, bool mirrored);
