@@ -132,6 +132,8 @@ public:
 	Texture2D texFlipper;
 	//N sprite del bumper
 	Texture2D texBumper;
+	//N sprite del plunger (lanzador)
+	Texture2D texPlunger;
 	//N fuente tipo codigo para el comentario del menu (winScore)
 	Font commentFont{};
 	void drawMap();

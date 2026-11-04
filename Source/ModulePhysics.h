@@ -96,6 +96,9 @@ public:
 	b2Body* GetLeftFlipperBody()  const { return flipper_joint ? flipper_joint->GetBodyB() : NULL; }
 	b2Body* GetRightFlipperBody() const { return flipper_joint_right ? flipper_joint_right->GetBodyB() : NULL; }
 
+	// N Devuelve el cuerpo del lanzador (plunger), el que se mueve con el prismatic joint
+	b2Body* GetKickerBody() const { return kicker_joint ? kicker_joint->GetBodyB() : NULL; }
+
 	// N Devuelve todos los bumpers (para que ModuleGame dibuje un sprite encima de cada uno)
 	const std::vector<b2Body*>& GetBumpers() const { return bumpers; }
 

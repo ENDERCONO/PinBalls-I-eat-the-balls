@@ -209,6 +209,10 @@ bool ModuleGame::Start()
 	texBumper = LoadTexture("Assets/bumper.png");
 	SetTextureFilter(texBumper, TEXTURE_FILTER_POINT);
 
+	//N plunger
+	texPlunger = LoadTexture("Assets/plunger.png");
+	SetTextureFilter(texPlunger, TEXTURE_FILTER_POINT);
+
 	//N fuente tipo "codigo" para el comentario del menu
 	//si el archivo no existe, raylib devuelve su fuente por defecto y todo sigue funcionando
 	commentFont = LoadFontEx("C:/Windows/Fonts/consola.ttf", 32, NULL, 0);
@@ -246,6 +250,7 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(texKicker);	//N kicker
 	UnloadTexture(texFlipper);	//N flipper
 	UnloadTexture(texBumper);	//N bumper
+	UnloadTexture(texPlunger);	//N plunger
 	UnloadFont(commentFont);	//N fuente del comentario
 
 	return true;
@@ -541,6 +546,19 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 		b2Vec2 bumperPos = bumper->GetPosition();
 		Rectangle bumperDest = { bumperPos.x * PIXELS_PER_METER, bumperPos.y * PIXELS_PER_METER, bumperSize, bumperSize };
 		DrawTexturePro(texBumper, bumperSource, bumperDest, bumperOrigin, 0.0f, WHITE);
+	}
+
+	//N plunger: sprite sobre el cuerpo del lanzador, baja y sube con el al cargarlo
+	b2Body* plungerBody = App->physics->GetKickerBody();
+	if (plungerBody != NULL)
+	{
+		b2Vec2 plungerPos = plungerBody->GetPosition();
+		const float plungerW = 28.0f;   //mismo tamano que su colision (caja de 14 x 10 de mitad)
+		const float plungerH = 20.0f;
+		Rectangle plungerSource = { 0.0f, 0.0f, (float)texPlunger.width, (float)texPlunger.height };
+		Rectangle plungerDest = { plungerPos.x * PIXELS_PER_METER, plungerPos.y * PIXELS_PER_METER, plungerW, plungerH };
+		Vector2 plungerOrigin = { plungerW / 2.0f, plungerH / 2.0f };
+		DrawTexturePro(texPlunger, plungerSource, plungerDest, plungerOrigin, 0.0f, WHITE);
 	}
 
 	//N kickers (los pongo aquí ya que es una posición fija)
