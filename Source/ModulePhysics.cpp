@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-const float bumperKick = 17.0f; //speed in m/s the bumper always throws the ball at
+
 const float bumperMinSpeed = 0.5f; //so we never divide by zero when the ball is almost still
 
 ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app, start_enabled)
@@ -61,40 +61,7 @@ bool ModulePhysics::Start()
 
 
 
-	/*
-	// Homework: dynamic, so a joint can make it rotate
-	b2BodyDef body;
-	body.type = b2_dynamicBody;
-	body.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
 
-	b2Body* big_ball = world->CreateBody(&body);
-
-	b2CircleShape shape;
-	shape.m_radius = PIXEL_TO_METERS(diameter) * 0.5f;
-
-	b2FixtureDef fixture;
-	fixture.shape = &shape;
-	fixture.density = 1.0f;
-	big_ball->CreateFixture(&fixture);
-
-	// Homework: revolute joint to the ground at its center, with a motor to spin it
-	b2RevoluteJointDef revolute;
-	revolute.Initialize(ground, big_ball, big_ball->GetWorldCenter());
-	revolute.enableMotor = true;
-	revolute.maxMotorTorque = 100000.0f;
-	revolute.motorSpeed = 0.25f * b2_pi; // rad/s
-	world->CreateJoint(&revolute);
-	*/
-
-
-
-
-
-
-
-	//----------------------------------------------------------------------------------------------------------------------------------------
-//Modification of Jonathan 18/10/26
-//Creation of the diferents joints
 
 	int x = (int)(SCREEN_WIDTH / 2);
 	int y = (int)(SCREEN_HEIGHT / 1.5f);
@@ -406,9 +373,11 @@ bool ModulePhysics::Start()
 
 
 
+	//Lo pasamos, para crear los PhysBody
 
-
-
+	WrapBody(bumperBody, BODY_BUMPER);
+	WrapBody(slingL, BODY_SLING);
+	WrapBody(slingR, BODY_SLING);
 
 
 
@@ -426,8 +395,8 @@ bool ModulePhysics::Start()
 
 update_status ModulePhysics::PreUpdate()
 {
-
-
+	//Control de los menus, pausa
+	if (paused) { return UPDATE_CONTINUE; } 
 
 	//-------------------------------------------------------------------------
 	//Mecanica de subida
@@ -505,8 +474,8 @@ update_status ModulePhysics::PreUpdate()
 	}
 
 	//----------------------------
-
-	world->Step(1.0f / 60.0f, 8, 3);
+	// N El world step lo hacemos dependiente a los fps
+	world->Step(1.0f / targetFPS, 8, 3);
 
 	return UPDATE_CONTINUE;
 }
@@ -658,6 +627,11 @@ bool ModulePhysics::CleanUp()
 {
 	LOG("Destroying physics world");
 
+
+
+	//Boramos los PhysBody
+	for (PhysBody* p : table_bodies) { delete p; }
+	table_bodies.clear();
 	// Delete the whole physics world! (this also frees every body, fixture and joint it owns)
 	delete world;
 	world = NULL;
@@ -788,6 +762,31 @@ void ModulePhysics::DestroyBody(PhysBody* pbody)
 	delete pbody; // we free our own wrapper
 }
 
+
+// N Funcion para darle un tipo de PhysBody a los b2Body sueltos
+PhysBody* ModulePhysics::WrapBody(b2Body* b, BodyType type)
+{
+	//creamos el nuevo PhysBodyvacio
+	PhysBody* pbody = new PhysBody();
+	//rellenamos el curpo vacio con el body creado  
+	pbody->body = b;
+	//rellenamos el cuerpo creado con el tipo que le pasamos 
+	pbody->type = type;
+	//aprovechamos una parte que esta vacia, llamada userData, i guardamos la direccion ahi, casteandoila a un numero entero        
+	b->GetUserData().pointer = reinterpret_cast<uintptr_t>(pbody);
+	table_bodies.push_back(pbody);
+	return pbody;
+}
+
+
+
+
+
+
+
+
+
+
 // Call the listeners that are not NULL
 void ModulePhysics::BeginContact(b2Contact* contact)
 {
@@ -888,3 +887,26 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 
 	return ret;
 }
+
+
+
+void ModulePhysics::SetGravityY(float gy)
+{
+	//cambiamos la grabedad y
+	world->SetGravity(b2Vec2(GRAVITY_X, gy));   
+}
+
+float ModulePhysics::GetGravityY() const
+{
+	//devolvemos la gravedad actual
+	return world->GetGravity().y;               
+}
+
+void ModulePhysics::SetRestitution(PhysBody* pbody, float restitution)
+{
+	//Recorremos todos los cuerpos y le modificamos la restitucion(obvio, los que tengan)
+	for (b2Fixture* f = pbody->body->GetFixtureList(); f; f = f->GetNext())
+		f->SetRestitution(restitution);
+}
+
+

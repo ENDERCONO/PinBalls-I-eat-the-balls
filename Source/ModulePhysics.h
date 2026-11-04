@@ -2,7 +2,7 @@
 
 #include "Module.h"
 #include "Globals.h"
-
+#include <vector>
 #include "box2d/box2d.h"
 
 // Gravity in m/s^2. Screen Y grows DOWNWARDS and we convert meters <-> pixels without flipping Y,
@@ -17,11 +17,25 @@
 #define METERS_TO_PIXELS(m) ((int) floor(PIXELS_PER_METER * (m)))
 #define PIXEL_TO_METERS(p)  ((float) METER_PER_PIXEL * (p))
 
+
+//Estos valores del enum los vamos a usar para saber con que colisions
+enum BodyType
+{
+	BODY_NONE,
+	BODY_BALL,
+	BODY_BUMPER,
+	BODY_SLING,
+	BODY_FLIPPER,
+	BODY_KICKER,
+	BODY_DRAIN,
+	BODY_WALL
+};
+
 // Small class to return to other modules to track position and rotation of physics bodies
 class PhysBody
 {
 public:
-	PhysBody() : body(NULL), listener(NULL)
+	PhysBody() : body(NULL), listener(NULL), type(BODY_NONE), points(0)
 	{}
 
 	void GetPosition(int& x, int& y) const;
@@ -33,6 +47,8 @@ public:
 	b2Body* body;
 	// Module that listens to the collisions of this body
 	Module* listener;
+	BodyType type;
+	int points;
 };
 
 // Module --------------------------------------
@@ -54,12 +70,43 @@ public:
 
 	void DestroyBody(PhysBody* pbody);
 
+	//Uni solucion encaontrada, ya que no nos apetece cambiar losb2Body a mano. 
+	//Entonces lo que hacemos, es convertirlos en PhysBody, para que se detecten al colisionar
+	PhysBody* WrapBody(b2Body* b, BodyType type);
+
+
+
+
+
+	//funciones que usamos para cambiar el menu de fisicas
+
+
+		// Ajustes que se cambian desde el menu de fisicas
+	//cambio de gravedad
+	void  SetGravityY(float gy);        
+	//se lee la gravedad actual
+	float GetGravityY() const;                  
+	//cambiuamos el rebote del cuerpo
+	void  SetRestitution(PhysBody* pbody, float restitution);
+
+
+
 	// N Devuelve el cuerpo fisico de cada flipper
 	b2Body* GetLeftFlipperBody()  const { return flipper_joint ? flipper_joint->GetBodyB() : NULL; }
 	b2Body* GetRightFlipperBody() const { return flipper_joint_right ? flipper_joint_right->GetBodyB() : NULL; }
 
 	void BeginContact(b2Contact* contact) override;
 	int bumperHits;//for countig points
+
+
+	//N variables par los menus
+	//control de si el menu esta abietro
+	bool  paused = false;  
+	//fps
+	int   targetFPS = 60;     
+	//velocidad a la que el bumper lanza la bola
+	float bumperKick = 17.0f;   
+
 
 private:
 
@@ -85,4 +132,7 @@ private:
 
 	b2Body* bumperBody;
 	void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
+	
+	//Es la lista de los cuerpos, la usamos para poder despues eliminarlos al dejar de compilar
+	std::vector<PhysBody*> table_bodies;
 };

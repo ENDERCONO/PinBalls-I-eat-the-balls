@@ -103,7 +103,7 @@ bool ModuleAudio::PlayFx(unsigned int id, int repeat)
 
 	bool ret = false;
 
-	if(id < fx_count) PlaySound(fx[id]);
+	if (id > 0 && id <= fx_count) PlaySound(fx[id - 1]);
 
 	return ret;
 }

@@ -21,9 +21,18 @@ const int buttonY = 400;
 //end of n
 //n
 const int startingBalls = 3;
+
+//N Variables para controlar los combos
+//cuantos golpes admite el bumper para cumplir el bonus
+const int bumperComboTarget = 3;   
+const int maxExtraBalls = 3;   // bolas maximas
+//maximas bolas en pantalla
+const int maxBalls = 5;            
+
+
 void restart();
 void drawGameOver();
-enum gameState { PLAYING, GAME_OVER };
+enum gameState { MENU, SETTINGS, PLAYING, GAME_OVER };
 
 const int bumperPoints = 100;
 
@@ -119,8 +128,26 @@ public:
 
 	//n
 	void spawnBall();
-
+	//spawn de la nuevas bolas
+	void spawnExtraBall();
 	gameState state;
+
+
+	//Mas variables para los menus, su control
+	//saber donde ir al volver
+	gameState returnState;                 
+	int   menuIndex = 0;                   
+	int   settingsIndex = 0;               
+	float wallBounce = wallRestitution;    
+
+	void updateMenu();                     
+	void drawMenu();                       
+	void updateSettings();                
+	void drawSettings();                  
+	void openSettings(gameState from);     
+
+
+
 	int ballsLeft; 
 	PhysBody* currentBall; 
 
@@ -131,10 +158,25 @@ public:
 
 	void drawScorePanel();
 	int score;
+	//n numero de golpes que tiene el bumper
+	int bumperCombo = 0;
+
+	// N variables para tener la puntuación anterior y máxima
+
+	int previousScore;
+	int highScore;
+
+
+
+
+
+
+
 
 	// end of "n"
 
 	std::vector<PhysBody*> walls; //to free them in CleanUp
+	std::vector<PhysBody*> extraBalls;   // bolas de bonus 
 
 private:
 	// ---- PLANTILLA (activo) ----
@@ -150,72 +192,6 @@ private:
 	Texture2D rick;
 	uint32 bonus_fx;
 
-	// ---- PINBALL (comentado) ----
-	// Para usar el pinball: descomenta todo esto y comenta el bloque de PLANTILLA de arriba
-	/*
-	struct Flipper {
-		PhysBody* body = NULL;
-		bool left = false;
-		float rest_angle = 0.0f;
-		float pressed_angle = 0.0f;
-		float angle = 0.0f;
-		float angular_speed = 0.0f;
-		float omega = 0.0f;
-		bool was_pressed = false;
-	};
-
-	struct Popup { float x, y; float timer; int value; bool bonus; };
-	struct Bumper { PhysBody* body; int x, y, radius; };
-	struct Diamond { PhysBody* body; int x, y; };
-	struct Kicker { PhysBody* body; int x, y; bool mirrored; };
-	struct Target { PhysBody* body; int x, y, half_w, half_h; bool lit; };
-	struct Mover {
-		PhysBody* body;
-		float cx, cy, ax, ay, speed, phase;
-		bool spinner;
-		int half_w, half_h, texture;
-	};
-
-	void BuildTable();
-	void LoadAssets();
-	void UnloadAssets();
-	void SpawnBall();
-	void RespawnBall();
-	void Restart();
-	void GameOver();
-	void AddScore(int value, int x, int y, bool bonus = false);
-	void UpdateFlipper(Flipper& flipper, bool pressed, float dt);
-	void UpdateSpring(float dt);
-	void UpdateMovers(float dt);
-	void UpdateBallSafety(float dt);
-	void UpdateEffects(float dt);
-	PhysBody* AddBody(PhysBody* body, int kind, int points = 0);
-
-	GameState state;
-	int score, highscore, hits;
-	std::vector<PhysBody*> bodies;
-	PhysBody* ball;
-	PhysBody* Spring;
-	PhysBody* drain;
-	Flipper flipper_left, flipper_right;
-	std::vector<Bumper> bumpers;
-	std::vector<Diamond> diamonds;
-	std::vector<Kicker> kickers;
-	std::vector<Target> targets;
-	std::vector<Mover> movers;
-	SpringState spring_state;
-	float spring_timer, ball_stuck_timer, ball_idle_timer, mover_time, bank_timer;
-	bool drain_hit;
-	std::vector<Popup> popups;
-	float trail_x[TRAIL_LENGTH];
-	float trail_y[TRAIL_LENGTH];
-	int trail_count;
-
-	Texture2D tex_background, tex_table, tex_ball;
-	Texture2D tex_bumper, tex_bumper_hit, tex_diamond, tex_diamond_hit;
-	Texture2D tex_flipper, tex_kicker, tex_kicker_hit;
-	Texture2D tex_target, tex_target_lit, tex_spring;
-	Texture2D tex_platform_wide, tex_platform_small, tex_spinner;
-	uint32 fx_bumper, fx_kicker, fx_target, fx_flipper, fx_launch, fx_wall, fx_gameover, fx_bonus;
-	*/
+	//vamos a crear las variables para guardar los sonidos
+	uint32 fx_bumper, fx_sling, fx_wall, fx_flipper, fx_launch, fx_gameover;
 };
