@@ -442,6 +442,47 @@ void ModuleGame::drawGameOver() { //dark screen, GAME OVER and the TRY AGAIN but
 
 	if ((hover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) || IsKeyPressed(KEY_ENTER)) { restart(); }
 }
+
+//N victoria: se llama una sola vez cuando score llega a winScore
+void ModuleGame::winGame()
+{
+	App->audio->PlayFx(bonus_fx);   //sonido de bonus como celebracion
+
+	previousScore = score;
+	if (score > highScore) { highScore = score; }
+
+	gameInProgress = false;   //la partida ha terminado, Play empezara una nueva
+	state = WIN;
+}
+
+//N pantalla de victoria: oscurece, muestra YOU WIN y el boton PLAY AGAIN
+void ModuleGame::drawWin()
+{
+	int centerX = SCREEN_WIDTH / 2;
+
+	DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Color{ 0, 0, 0, 175 });
+
+	const char* title = "YOU WIN!";
+	DrawText(title, centerX - MeasureText(title, gameOverTitleSize) / 2, gameOverTitleY, gameOverTitleSize, Color{ 255, 230, 90, 255 });
+
+	const char* scoreText = TextFormat("SCORE: %06d", score);
+	DrawText(scoreText, centerX - MeasureText(scoreText, 40) / 2, gameOverTitleY + 100, 40, WHITE);
+
+	Rectangle button = { (float)(centerX - buttonWidth / 2), (float)buttonY, (float)buttonWidth, (float)buttonHeight };
+	bool hover = CheckCollisionPointRec(GetMousePosition(), button);
+
+	DrawRectangleRec(button, hover ? Color{ 255, 120, 210, 255 } : Color{ 22, 22, 22, 255 });
+	DrawRectangleLinesEx(button, 4.0f, WHITE);
+
+	const char* label = "PLAY AGAIN";
+	DrawText(label, centerX - MeasureText(label, 40) / 2, buttonY + 20, 40, WHITE);
+
+	const char* hint = "ENTER: play again    ESC: menu";
+	DrawText(hint, centerX - MeasureText(hint, 20) / 2, SCREEN_HEIGHT - 80, 20, Color{ 150, 170, 210, 255 });
+
+	if ((hover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) || IsKeyPressed(KEY_ENTER)) { restart(); }
+	else if (IsKeyPressed(KEY_ESCAPE)) { menuIndex = 0; state = MENU; }
+}
 //end of "n"
 
 //N flippers (se tienen que dibujar)
@@ -507,7 +548,7 @@ update_status ModuleGame::Update()
 
 
 	//congelar fisicas si estamos en el estado MENU
-	App->physics->paused = (state == MENU || state == SETTINGS);
+	App->physics->paused = (state == MENU || state == SETTINGS || state == WIN);
 
 	//ir dibujando
 	if (state == MENU)
@@ -651,6 +692,10 @@ update_status ModuleGame::Update()
 
 	}
 	App->physics->bumperHits = 0;
+
+	//victoria: al llegar a winScore se acaba la partida
+	if (state == PLAYING && score >= winScore) { winGame(); }
+	if (state == WIN) { drawWin(); }
 	//end of n
 
 

@@ -32,7 +32,7 @@ const int maxBalls = 5;
 
 void restart();
 void drawGameOver();
-enum gameState { MENU, SETTINGS, PLAYING, GAME_OVER };
+enum gameState { MENU, SETTINGS, PLAYING, GAME_OVER, WIN };
 
 const int bumperPoints = 100;
 
@@ -42,6 +42,9 @@ const int   slingPoints = 50;           //por tocar un triangulo (slingshot)
 const int   otherPoints = 5;            //flippers, kicker y demas objetos sin tipo
 const float wallMinSpeed = 3.0f;        //velocidad minima de la bola para que la pared puntue (y suene)
 const float wallScoreCooldown = 0.1f;   //segundos entre dos toques de pared que puntuan
+
+//N puntuacion necesaria para ganar la partida
+const int   winScore = 200;
 
 
 void drawScorePanel();
@@ -171,6 +174,10 @@ public:
 
 	void restart();
 	void drawGameOver();
+
+	//victoria al llegar a winScore
+	void winGame();
+	void drawWin();
 
 	void drawScorePanel();
 	int score;
