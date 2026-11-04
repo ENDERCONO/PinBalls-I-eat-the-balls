@@ -175,7 +175,7 @@ bool ModulePhysics::Start()
 //Body
 	b2BodyDef B3;
 	B3.type = b2_staticBody;
-	B3.position.Set(PIXEL_TO_METERS(x + 226), PIXEL_TO_METERS(y + 195));
+	B3.position.Set(PIXEL_TO_METERS(x + 223), PIXEL_TO_METERS(y + 195));
 	b2Body* body3 = world->CreateBody(&B3);
 
 	//Shape
@@ -194,7 +194,7 @@ bool ModulePhysics::Start()
 		//Body
 	b2BodyDef B4;
 	B4.type = b2_dynamicBody;
-	B4.position.Set(PIXEL_TO_METERS(x + 226), PIXEL_TO_METERS(y + 195));
+	B4.position.Set(PIXEL_TO_METERS(x + 223), PIXEL_TO_METERS(y + 195));
 	b2Body* body4 = world->CreateBody(&B4);
 
 	//Shape
