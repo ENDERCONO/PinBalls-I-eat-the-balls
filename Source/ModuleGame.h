@@ -36,6 +36,13 @@ enum gameState { MENU, SETTINGS, PLAYING, GAME_OVER };
 
 const int bumperPoints = 100;
 
+//N puntos por tocar cosas (el bumper sigue sumando por bumperHits)
+const int   wallPoints = 10;            //por tocar una pared
+const int   slingPoints = 50;           //por tocar un triangulo (slingshot)
+const int   otherPoints = 5;            //flippers, kicker y demas objetos sin tipo
+const float wallMinSpeed = 3.0f;        //velocidad minima de la bola para que la pared puntue (y suene)
+const float wallScoreCooldown = 0.1f;   //segundos entre dos toques de pared que puntuan
+
 
 void drawScorePanel();
 
@@ -145,6 +152,9 @@ public:
 
 	//true cuando se pulsa EXIT en el menu
 	bool  wantsExit = false;
+
+	//momento del ultimo toque de pared que puntuo (para no sumar en cada frame)
+	double lastWallScoreTime = 0.0;
 
 	void updateMenu();
 	void drawMenu();

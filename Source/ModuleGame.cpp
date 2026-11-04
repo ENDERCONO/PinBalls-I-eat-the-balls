@@ -682,18 +682,45 @@ void ModuleGame::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 		return;
 
 
-	if (bodyA->type != BODY_BALL || bodyB == NULL)
+	if (bodyA->type != BODY_BALL)
 		return;
+
+	// Cuerpos sin PhysBody (flippers, kicker...): puntos por tocar "alguna cosa"
+	if (bodyB == NULL)
+	{
+		if (state == PLAYING) { score += otherPoints; }
+		return;
+	}
 
 	switch (bodyB->type)
 	{
-	case BODY_BUMPER: App->audio->PlayFx(fx_bumper); break;
-	case BODY_SLING: App->audio->PlayFx(fx_sling); break;
-	case BODY_WALL:
-
-		if (bodyA->body->GetLinearVelocity().Length() > 3.0f)
-			App->audio->PlayFx(fx_wall);
+	case BODY_BUMPER:
+		// los puntos del bumper se suman en Update() con bumperHits
+		App->audio->PlayFx(fx_bumper);
 		break;
+
+	case BODY_SLING:
+		App->audio->PlayFx(fx_sling);
+		if (state == PLAYING) { score += slingPoints; }
+		break;
+
+	case BODY_WALL:
+	{
+		if (bodyA->body->GetLinearVelocity().Length() > wallMinSpeed)
+		{
+			App->audio->PlayFx(fx_wall);
+
+			// la pared puntua, pero con una pausa para no sumar sin parar
+			double now = GetTime();
+			if (state == PLAYING && now - lastWallScoreTime >= wallScoreCooldown)
+			{
+				score += wallPoints;
+				lastWallScoreTime = now;
+			}
+		}
+		break;
+	}
+
 	default: break;
 	}
 }
