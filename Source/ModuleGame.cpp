@@ -696,8 +696,9 @@ update_status ModuleGame::Update()
 	if (state == PLAYING)
 	{
 		//Hacemos sonar los trremendos sonidos
-		if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) { App->audio->PlayFx(fx_flipper); }
-		if (IsKeyReleased(KEY_DOWN)) { App->audio->PlayFx(fx_launch); }
+		//mismas teclas que usa ModulePhysics: flechas o A/D para los flippers, flecha abajo o W para el lanzador
+		if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D)) { App->audio->PlayFx(fx_flipper); }
+		if (IsKeyReleased(KEY_DOWN) || IsKeyReleased(KEY_W)) { App->audio->PlayFx(fx_launch); }
 
 
 
