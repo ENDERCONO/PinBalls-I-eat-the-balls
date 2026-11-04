@@ -1,4 +1,4 @@
-# {Pinball}
+# PINBALL
 
 ## Description
 
@@ -36,4 +36,4 @@ Hemos creado un juego de pinball 2D desarrollado en C++ con raylib (gráficos, a
 
 This project is licensed under an unmodified MIT license, which is an OSI-certified license that allows static linking with closed source software. Check [LICENSE](LICENSE) for further details.
 
-{AdditionalLicenses}
+{AdditionalLicenses
