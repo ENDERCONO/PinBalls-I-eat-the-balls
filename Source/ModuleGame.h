@@ -44,7 +44,7 @@ const float wallMinSpeed = 3.0f;        //velocidad minima de la bola para que l
 const float wallScoreCooldown = 0.1f;   //segundos entre dos toques de pared que puntuan
 
 //N puntuacion necesaria para ganar la partida
-const int   winScore = 1000;
+const int   winScore = 1500;
 
 
 void drawScorePanel();
