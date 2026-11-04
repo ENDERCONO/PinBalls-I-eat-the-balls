@@ -36,7 +36,8 @@ class PhysBody
 {
 public:
 	PhysBody() : body(NULL), listener(NULL), type(BODY_NONE), points(0)
-	{}
+	{
+	}
 
 	void GetPosition(int& x, int& y) const;
 	float GetRotation() const;
@@ -83,9 +84,9 @@ public:
 
 		// Ajustes que se cambian desde el menu de fisicas
 	//cambio de gravedad
-	void  SetGravityY(float gy);        
+	void  SetGravityY(float gy);
 	//se lee la gravedad actual
-	float GetGravityY() const;                  
+	float GetGravityY() const;
 	//cambiuamos el rebote del cuerpo
 	void  SetRestitution(PhysBody* pbody, float restitution);
 
@@ -95,17 +96,20 @@ public:
 	b2Body* GetLeftFlipperBody()  const { return flipper_joint ? flipper_joint->GetBodyB() : NULL; }
 	b2Body* GetRightFlipperBody() const { return flipper_joint_right ? flipper_joint_right->GetBodyB() : NULL; }
 
+	// N Devuelve todos los bumpers (para que ModuleGame dibuje un sprite encima de cada uno)
+	const std::vector<b2Body*>& GetBumpers() const { return bumpers; }
+
 	void BeginContact(b2Contact* contact) override;
 	int bumperHits;//for countig points
 
 
 	//N variables par los menus
 	//control de si el menu esta abietro
-	bool  paused = false;  
+	bool  paused = false;
 	//fps
-	int   targetFPS = 60;     
+	int   targetFPS = 60;
 	//velocidad a la que el bumper lanza la bola
-	float bumperKick = 17.0f;   
+	float bumperKick = 17.0f;
 
 
 private:
@@ -128,11 +132,17 @@ private:
 	//Creamos un objeto y luego ya le damos el valor de otro objeto
 	b2Body* frictionBody;
 
-	
 
-	b2Body* bumperBody;
+
+	//N Lista de bumpers (antes habia uno solo, bumperBody)
+	std::vector<b2Body*> bumpers;
+	//crea un bumper estatico circular en pixeles y lo guarda en la lista
+	b2Body* CreateBumper(int x, int y, int radius);
+	//true si el cuerpo es uno de los bumpers
+	bool IsBumper(b2Body* b) const;
+
 	void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
-	
+
 	//Es la lista de los cuerpos, la usamos para poder despues eliminarlos al dejar de compilar
 	std::vector<PhysBody*> table_bodies;
 };

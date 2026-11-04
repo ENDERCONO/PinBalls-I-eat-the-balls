@@ -23,14 +23,13 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 	//Friccion
 	frictionBody = NULL;
 	flipper_joint_right = NULL;
-	bumperBody = NULL;
 
 	bumperHits = 0; // counting points
 
 	//triangulo
-	
+
 	slingR = NULL;
-	
+
 	//n
 	slingL = NULL; slingR = NULL;
 	//end of n
@@ -46,7 +45,7 @@ bool ModulePhysics::Start()
 {
 	LOG("Creating Physics 2D environment");
 
-	
+
 
 	// Assign the member variable (do NOT declare a local "b2World* world" here, it would shadow the member)
 	world = new b2World(b2Vec2(GRAVITY_X, -GRAVITY_Y));
@@ -54,7 +53,7 @@ bool ModulePhysics::Start()
 	world->SetContactListener(this);
 
 
-	
+
 	// Needed to create joints like the mouse joint
 	b2BodyDef bd;
 	ground = world->CreateBody(&bd);
@@ -72,8 +71,8 @@ bool ModulePhysics::Start()
 
 	//Object 1
 
-	float DisplaceFlipperX = PIXEL_TO_METERS(x-120);
-	float DisplaceFlipperY = PIXEL_TO_METERS(y +120);
+	float DisplaceFlipperX = PIXEL_TO_METERS(x - 120);
+	float DisplaceFlipperY = PIXEL_TO_METERS(y + 120);
 
 	//Body
 	b2BodyDef B1;
@@ -91,9 +90,9 @@ bool ModulePhysics::Start()
 	body1->CreateFixture(&F1);
 
 
-		//Object 2
+	//Object 2
 
-	//Body
+//Body
 	b2BodyDef B2;
 	B2.type = b2_dynamicBody;
 	B2.position.Set(DisplaceFlipperX, DisplaceFlipperY);
@@ -124,9 +123,9 @@ bool ModulePhysics::Start()
 	F2.density = 1.0f;
 	body2->CreateFixture(&F2);
 
-		//Object 2 FLIPPER RIGHT
+	//Object 2 FLIPPER RIGHT
 
-	//Pivot of the right flipper (static), mirrored from the left one
+//Pivot of the right flipper (static), mirrored from the left one
 	float DisplaceFlipperRightX = PIXEL_TO_METERS(x + 85);
 
 	b2BodyDef PivotRightDef;
@@ -167,16 +166,16 @@ bool ModulePhysics::Start()
 	FixtureRight.density = 1.0f;
 	BodyRight2->CreateFixture(&FixtureRight);
 
-		// END HERE FLIPPER RIGHT
+	// END HERE FLIPPER RIGHT
 
 
-	//Objects for the Kicker
-	//OBJ 3
+//Objects for the Kicker
+//OBJ 3
 
-	//Body
+//Body
 	b2BodyDef B3;
 	B3.type = b2_staticBody;
-	B3.position.Set(PIXEL_TO_METERS(x+226), PIXEL_TO_METERS(y+195));
+	B3.position.Set(PIXEL_TO_METERS(x + 226), PIXEL_TO_METERS(y + 195));
 	b2Body* body3 = world->CreateBody(&B3);
 
 	//Shape
@@ -195,7 +194,7 @@ bool ModulePhysics::Start()
 		//Body
 	b2BodyDef B4;
 	B4.type = b2_dynamicBody;
-	B4.position.Set(PIXEL_TO_METERS(x+226), PIXEL_TO_METERS(y+195));
+	B4.position.Set(PIXEL_TO_METERS(x + 226), PIXEL_TO_METERS(y + 195));
 	b2Body* body4 = world->CreateBody(&B4);
 
 	//Shape
@@ -210,25 +209,12 @@ bool ModulePhysics::Start()
 	body4->CreateFixture(&F4);
 
 
-		//Creacion de los Bumpers
-	//Meterle Restituition en la Fixture Fuerzaaaaaaa!!!!!!!!!!! Tocho
-
-	b2BodyDef BB;
-	BB.type = b2_staticBody;
-	BB.position.Set(PIXEL_TO_METERS(x -15), PIXEL_TO_METERS(y - 205));
-	b2Body* bumper = world->CreateBody(&BB);
-
-	//Shape
-	b2CircleShape SB;
-	SB.m_radius =(PIXEL_TO_METERS(30));
-
-
-	//Fixture
-	b2FixtureDef FB;
-	FB.shape = &SB;
-	FB.restitution = 1.0f; //base value, PreSolve changes it for each hit
-	bumper->CreateFixture(&FB);
-	bumperBody = bumper;
+	//Creacion de los Bumpers
+	//N Ahora son tres: el de siempre (centro) y dos arriba, donde antes estaban los circulos negros de la mesa.
+	//Posiciones en pixeles de pantalla. Si hay que moverlos, solo se tocan estos numeros (el sprite los sigue solo).
+	CreateBumper(x - 15, y - 205, 30);   //centro (el de siempre)
+	CreateBumper(x - 79, y - 270, 30);   //arriba izquierda
+	CreateBumper(x + 51, y - 270, 30);   //arriba derecha
 
 
 
@@ -238,7 +224,7 @@ bool ModulePhysics::Start()
 
 	b2BodyDef BF;
 	BF.type = b2_staticBody;
-	BF.position.Set(PIXEL_TO_METERS(x-600), PIXEL_TO_METERS(y - 150));
+	BF.position.Set(PIXEL_TO_METERS(x - 600), PIXEL_TO_METERS(y - 150));
 	b2Body* friction = world->CreateBody(&BF);
 
 	//Shape
@@ -261,7 +247,7 @@ bool ModulePhysics::Start()
 	//Joints
 	//----------------------------------------------------------
 	//RevoluteJoint
-	
+
 	//Conectamos los dos puntos
 	b2RevoluteJointDef jointDef1;
 	jointDef1.Initialize(body1, body2, body1->GetWorldCenter());
@@ -320,18 +306,18 @@ bool ModulePhysics::Start()
 	jointDef2.maxMotorForce = 100.0f;
 	jointDef2.motorSpeed = 0.0f;
 
-	  //Creacion del joint y guardado
+	//Creacion del joint y guardado
 	kicker_joint = (b2PrismaticJoint*)world->CreateJoint(&jointDef2);
 
-//-----------------------------------------------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------------------------------------
 
 
 
-	//Trianguilao
+		//Trianguilao
 
-	//------------------------TRIANGULOS (SLINGSHOTS)-----------------------
+		//------------------------TRIANGULOS (SLINGSHOTS)-----------------------
 
-//Izquierdo: angulo recto abajo a la izquierda
+	//Izquierdo: angulo recto abajo a la izquierda
 	b2Vec2 slingVertsL[3];
 	slingVertsL[0].Set(PIXEL_TO_METERS(4), PIXEL_TO_METERS(4));
 	slingVertsL[1].Set(PIXEL_TO_METERS(4), PIXEL_TO_METERS(76));
@@ -375,7 +361,7 @@ bool ModulePhysics::Start()
 
 	//Lo pasamos, para crear los PhysBody
 
-	WrapBody(bumperBody, BODY_BUMPER);
+	for (b2Body* b : bumpers) { WrapBody(b, BODY_BUMPER); }   //N los tres bumpers
 	WrapBody(slingL, BODY_SLING);
 	WrapBody(slingR, BODY_SLING);
 
@@ -396,11 +382,11 @@ bool ModulePhysics::Start()
 update_status ModulePhysics::PreUpdate()
 {
 	//Control de los menus, pausa
-	if (paused) { return UPDATE_CONTINUE; } 
+	if (paused) { return UPDATE_CONTINUE; }
 
 	//-------------------------------------------------------------------------
 	//Mecanica de subida
-	if (IsKeyDown(KEY_A)||(IsKeyDown(KEY_LEFT)))
+	if (IsKeyDown(KEY_A) || (IsKeyDown(KEY_LEFT)))
 	{
 		flipper_joint->SetMotorSpeed(-300.0f);
 	}
@@ -504,75 +490,75 @@ update_status ModulePhysics::PostUpdate()
 	// Bonus code: this will iterate all objects in the world and draw the circles
 	for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
 	{
-		for(b2Fixture* f = b->GetFixtureList(); f; f = f->GetNext())
+		for (b2Fixture* f = b->GetFixtureList(); f; f = f->GetNext())
 		{
-			switch(f->GetType())
+			switch (f->GetType())
 			{
 				// Draw circles ------------------------------------------------
-				case b2Shape::e_circle:
+			case b2Shape::e_circle:
+			{
+				b2CircleShape* shape = (b2CircleShape*)f->GetShape();
+				b2Vec2 pos = f->GetBody()->GetPosition();
+
+				DrawCircle(METERS_TO_PIXELS(pos.x), METERS_TO_PIXELS(pos.y), (float)METERS_TO_PIXELS(shape->m_radius), Color{ 0, 0, 0, 128 });
+
+				// Radius line to see the rotation
+				b2Vec2 edge = b->GetWorldPoint(b2Vec2(shape->m_radius, 0.0f));
+				DrawLine(METERS_TO_PIXELS(pos.x), METERS_TO_PIXELS(pos.y), METERS_TO_PIXELS(edge.x), METERS_TO_PIXELS(edge.y), WHITE);
+			}
+			break;
+
+			// Draw polygons ------------------------------------------------
+			case b2Shape::e_polygon:
+			{
+				b2PolygonShape* polygonShape = (b2PolygonShape*)f->GetShape();
+				int32 count = polygonShape->m_count;
+				b2Vec2 prev, v;
+
+				for (int32 i = 0; i < count; ++i)
 				{
-					b2CircleShape* shape = (b2CircleShape*)f->GetShape();
-					b2Vec2 pos = f->GetBody()->GetPosition();
-					
-					DrawCircle(METERS_TO_PIXELS(pos.x), METERS_TO_PIXELS(pos.y), (float)METERS_TO_PIXELS(shape->m_radius), Color{0, 0, 0, 128});
+					v = b->GetWorldPoint(polygonShape->m_vertices[i]);
+					if (i > 0)
+						DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), RED);
 
-					// Radius line to see the rotation
-					b2Vec2 edge = b->GetWorldPoint(b2Vec2(shape->m_radius, 0.0f));
-					DrawLine(METERS_TO_PIXELS(pos.x), METERS_TO_PIXELS(pos.y), METERS_TO_PIXELS(edge.x), METERS_TO_PIXELS(edge.y), WHITE);
+					prev = v;
 				}
-				break;
 
-				// Draw polygons ------------------------------------------------
-				case b2Shape::e_polygon:
+				v = b->GetWorldPoint(polygonShape->m_vertices[0]);
+				DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), RED);
+			}
+			break;
+
+			// Draw chains contour -------------------------------------------
+			case b2Shape::e_chain:
+			{
+				b2ChainShape* shape = (b2ChainShape*)f->GetShape();
+				b2Vec2 prev, v;
+
+				for (int32 i = 0; i < shape->m_count; ++i)
 				{
-					b2PolygonShape* polygonShape = (b2PolygonShape*)f->GetShape();
-					int32 count = polygonShape->m_count;
-					b2Vec2 prev, v;
-
-					for(int32 i = 0; i < count; ++i)
-					{
-						v = b->GetWorldPoint(polygonShape->m_vertices[i]);
-						if(i > 0)
-							DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), RED);
-
-						prev = v;
-					}
-
-					v = b->GetWorldPoint(polygonShape->m_vertices[0]);
-					DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), RED);
+					v = b->GetWorldPoint(shape->m_vertices[i]);
+					if (i > 0)
+						DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), GREEN);
+					prev = v;
 				}
-				break;
 
-				// Draw chains contour -------------------------------------------
-				case b2Shape::e_chain:
-				{
-					b2ChainShape* shape = (b2ChainShape*)f->GetShape();
-					b2Vec2 prev, v;
+				v = b->GetWorldPoint(shape->m_vertices[0]);
+				DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), GREEN);
+			}
+			break;
 
-					for(int32 i = 0; i < shape->m_count; ++i)
-					{
-						v = b->GetWorldPoint(shape->m_vertices[i]);
-						if(i > 0)
-							DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), GREEN);
-						prev = v;
-					}
+			// Draw a single segment(edge) ----------------------------------
+			case b2Shape::e_edge:
+			{
+				b2EdgeShape* shape = (b2EdgeShape*)f->GetShape();
+				b2Vec2 v1, v2;
 
-					v = b->GetWorldPoint(shape->m_vertices[0]);
-					DrawLine(METERS_TO_PIXELS(prev.x), METERS_TO_PIXELS(prev.y), METERS_TO_PIXELS(v.x), METERS_TO_PIXELS(v.y), GREEN);
-				}
-				break;
-
-				// Draw a single segment(edge) ----------------------------------
-				case b2Shape::e_edge:
-				{
-					b2EdgeShape* shape = (b2EdgeShape*)f->GetShape();
-					b2Vec2 v1, v2;
-
-					v1 = b->GetWorldPoint(shape->m_vertex1);
-					v2 = b->GetWorldPoint(shape->m_vertex2);
-					DrawLine(METERS_TO_PIXELS(v1.x), METERS_TO_PIXELS(v1.y), METERS_TO_PIXELS(v2.x), METERS_TO_PIXELS(v2.y), BLUE);
-				}
-				break;
+				v1 = b->GetWorldPoint(shape->m_vertex1);
+				v2 = b->GetWorldPoint(shape->m_vertex2);
+				DrawLine(METERS_TO_PIXELS(v1.x), METERS_TO_PIXELS(v1.y), METERS_TO_PIXELS(v2.x), METERS_TO_PIXELS(v2.y), BLUE);
+			}
+			break;
 			}
 
 			// TODO 1: If mouse button 1 is pressed, test if the current body contains mouse position
@@ -632,6 +618,7 @@ bool ModulePhysics::CleanUp()
 	//Boramos los PhysBody
 	for (PhysBody* p : table_bodies) { delete p; }
 	table_bodies.clear();
+	bumpers.clear();
 	// Delete the whole physics world! (this also frees every body, fixture and joint it owns)
 	delete world;
 	world = NULL;
@@ -779,6 +766,39 @@ PhysBody* ModulePhysics::WrapBody(b2Body* b, BodyType type)
 }
 
 
+// N Crea un bumper estatico circular (x, y y radio en pixeles) y lo guarda en la lista de bumpers
+b2Body* ModulePhysics::CreateBumper(int x, int y, int radius)
+{
+	b2BodyDef BB;
+	BB.type = b2_staticBody;
+	BB.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+	b2Body* bumper = world->CreateBody(&BB);
+
+	//Shape
+	b2CircleShape SB;
+	SB.m_radius = PIXEL_TO_METERS(radius);
+
+	//Fixture
+	b2FixtureDef FB;
+	FB.shape = &SB;
+	FB.restitution = 1.0f; //base value, PreSolve changes it for each hit
+	bumper->CreateFixture(&FB);
+
+	bumpers.push_back(bumper);
+	return bumper;
+}
+
+// N true si el cuerpo es uno de los bumpers
+bool ModulePhysics::IsBumper(b2Body* b) const
+{
+	for (b2Body* bumper : bumpers)
+	{
+		if (bumper == b) { return true; }
+	}
+	return false;
+}
+
+
 
 
 
@@ -793,7 +813,7 @@ void ModulePhysics::BeginContact(b2Contact* contact)
 
 	b2Body* bodyA = contact->GetFixtureA()->GetBody();
 	b2Body* bodyB = contact->GetFixtureB()->GetBody();
-	if (bumperBody != NULL && (bodyA == bumperBody || bodyB == bumperBody)) { ++bumperHits; } //math for points
+	if (IsBumper(bodyA) || IsBumper(bodyB)) { ++bumperHits; } //math for points
 
 	PhysBody* a = (PhysBody*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
 	PhysBody* b = (PhysBody*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
@@ -806,16 +826,16 @@ void ModulePhysics::BeginContact(b2Contact* contact)
 }
 //Alejandro Hoy
 void ModulePhysics::PreSolve(b2Contact* contact, const b2Manifold* oldManifold) { //sets the bounciness of this hit, restitution = kick / speed
-	if (bumperBody == NULL) { return; }
+	if (bumpers.empty()) { return; }
 
 	b2Body* bodyA = contact->GetFixtureA()->GetBody();
 	b2Body* bodyB = contact->GetFixtureB()->GetBody();
 
 	b2Body* other = NULL; //the object that hit the bumper
-	if (bodyA == bumperBody) { other = bodyB; }
-	else if (bodyB == bumperBody) { other = bodyA; }
+	if (IsBumper(bodyA)) { other = bodyB; }
+	else if (IsBumper(bodyB)) { other = bodyA; }
 	else { return; } //not a bumper hit
-	
+
 	float speed = other->GetLinearVelocity().Length();
 	if (speed < bumperMinSpeed) { speed = bumperMinSpeed; }
 
@@ -893,13 +913,13 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 void ModulePhysics::SetGravityY(float gy)
 {
 	//cambiamos la grabedad y
-	world->SetGravity(b2Vec2(GRAVITY_X, gy));   
+	world->SetGravity(b2Vec2(GRAVITY_X, gy));
 }
 
 float ModulePhysics::GetGravityY() const
 {
 	//devolvemos la gravedad actual
-	return world->GetGravity().y;               
+	return world->GetGravity().y;
 }
 
 void ModulePhysics::SetRestitution(PhysBody* pbody, float restitution)
@@ -908,5 +928,3 @@ void ModulePhysics::SetRestitution(PhysBody* pbody, float restitution)
 	for (b2Fixture* f = pbody->body->GetFixtureList(); f; f = f->GetNext())
 		f->SetRestitution(restitution);
 }
-
-

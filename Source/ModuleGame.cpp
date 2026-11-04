@@ -205,6 +205,10 @@ bool ModuleGame::Start()
 	texFlipper = LoadTexture("Assets/flipper.png");
 	SetTextureFilter(texFlipper, TEXTURE_FILTER_POINT);
 
+	//N bumper
+	texBumper = LoadTexture("Assets/bumper.png");
+	SetTextureFilter(texBumper, TEXTURE_FILTER_POINT);
+
 	//N fuente tipo "codigo" para el comentario del menu
 	//si el archivo no existe, raylib devuelve su fuente por defecto y todo sigue funcionando
 	commentFont = LoadFontEx("C:/Windows/Fonts/consola.ttf", 32, NULL, 0);
@@ -241,6 +245,7 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(texTable);
 	UnloadTexture(texKicker);	//N kicker
 	UnloadTexture(texFlipper);	//N flipper
+	UnloadTexture(texBumper);	//N bumper
 	UnloadFont(commentFont);	//N fuente del comentario
 
 	return true;
@@ -526,6 +531,17 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 	Rectangle tableSource = { 0.0f, 0.0f, (float)texTable.width, (float)texTable.height };
 	Rectangle tableDest = { (float)tableX, 0.0f, (float)tableWidth, (float)tableHeight };
 	DrawTexturePro(texTable, tableSource, tableDest, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+
+	//N bumpers: un sprite encima de cada cuerpo bumper de ModulePhysics (tapan los circulos negros de la mesa)
+	const float bumperSize = 60.0f;   //diametro en pixeles (2 x radio 30)
+	Rectangle bumperSource = { 0.0f, 0.0f, (float)texBumper.width, (float)texBumper.height };
+	Vector2 bumperOrigin = { bumperSize / 2.0f, bumperSize / 2.0f };
+	for (b2Body* bumper : App->physics->GetBumpers())
+	{
+		b2Vec2 bumperPos = bumper->GetPosition();
+		Rectangle bumperDest = { bumperPos.x * PIXELS_PER_METER, bumperPos.y * PIXELS_PER_METER, bumperSize, bumperSize };
+		DrawTexturePro(texBumper, bumperSource, bumperDest, bumperOrigin, 0.0f, WHITE);
+	}
 
 	//N kickers (los pongo aquí ya que es una posición fija)
 	float kickerW = (float)texKicker.width;

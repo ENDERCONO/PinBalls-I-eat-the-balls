@@ -130,6 +130,8 @@ public:
 	//N agregado para los assets del kicker y flipper
 	Texture2D texKicker;
 	Texture2D texFlipper;
+	//N sprite del bumper
+	Texture2D texBumper;
 	//N fuente tipo codigo para el comentario del menu (winScore)
 	Font commentFont{};
 	void drawMap();
