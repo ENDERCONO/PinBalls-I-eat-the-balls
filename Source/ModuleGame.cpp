@@ -78,12 +78,6 @@ public:
 		Rectangle dest = { (float)x, (float)y, (float)texture.width, (float)texture.height };
 		Vector2 origin = { (float)texture.width / 2.0f, (float)texture.height / 2.0f };
 		DrawTexturePro(texture, source, dest, origin, body->GetRotation() * RAD2DEG, tint);
-	
-	
-	
-	
-	
-	
 	}
 
 private:
@@ -216,7 +210,7 @@ bool ModuleGame::Start()
 
 	//n
 	spawnBall();
-	
+
 
 
 	return ret;
@@ -252,7 +246,7 @@ bool ModuleGame::CleanUp()
 void ModuleGame::buildWalls() { //outer shell, launch lane wall and right slope
 	//every node of the outer wall, x and y in table coordinates, going from the lane bottom up, over the arc and down the left side
 	const int shell[] = {
-		490, 700, 
+		490, 700,
 		490, 250,
 		489, 229,
 		486, 208,
@@ -271,7 +265,7 @@ void ModuleGame::buildWalls() { //outer shell, launch lane wall and right slope
 		312, 18,
 		291, 13,
 		270, 10,
-		249, 10, 
+		249, 10,
 		229, 10,
 		208, 13,
 		187, 18,
@@ -331,14 +325,14 @@ void ModuleGame::spawnBall() { //new ball in the launch lane, bottom right of th
 }
 
 //Nueva bola, del bonus
-void ModuleGame::spawnExtraBall()   
+void ModuleGame::spawnExtraBall()
 {
 	Circle* ball = new Circle(App->physics, tableX + 250, 100, circle);
 	ball->body->type = BODY_BALL;       //asignamos tipo
 	ball->body->listener = this;
 	//ball->body->body->SetLinearVelocity(b2Vec2(1.5f, 0.0f));   
 	entities.push_back(ball);
-	extraBalls.push_back(ball->body);   
+	extraBalls.push_back(ball->body);
 }
 
 // N Función para controlar el game over
@@ -346,8 +340,8 @@ void ModuleGame::ballLost() {
 	currentBall = NULL;
 	--ballsLeft;
 
-	if (ballsLeft <= 0) 
-	{ 
+	if (ballsLeft <= 0)
+	{
 		App->audio->PlayFx(fx_gameover);//hacemos sonar la musica
 		//Assignamos el anterior puntaje al acual
 		previousScore = score;
@@ -356,8 +350,9 @@ void ModuleGame::ballLost() {
 		{
 			highScore = score;
 		}
-		state = GAME_OVER; 
-		return; 
+		gameInProgress = false;   //la partida ha terminado, Play empezara una nueva
+		state = GAME_OVER;
+		return;
 	}
 	spawnBall();
 }
@@ -368,6 +363,7 @@ void ModuleGame::restart() { //start new game with 3 balls once again
 	DestroyAllEntities();
 	extraBalls.clear();
 	state = PLAYING;
+	gameInProgress = true;   //hay una partida en curso
 	ballsLeft = startingBalls;
 	spawnBall();
 }
@@ -376,8 +372,8 @@ void ModuleGame::restart() { //start new game with 3 balls once again
 
 
 // N funcion para mostrar el texto en pantalla
-void ModuleGame::drawScorePanel() 
-{ 
+void ModuleGame::drawScorePanel()
+{
 	int centerX = tableX / 2;
 	//Definimos el rectangulo principal
 	Rectangle panel = { 30.0f, 40.0f, (float)(tableX - 60), 420.0f };
@@ -394,14 +390,14 @@ void ModuleGame::drawScorePanel()
 	DrawText(ballsLabel, centerX - MeasureText(ballsLabel, 30) / 2, 200, 30, Color{ 150, 170, 210, 255 });
 
 	//Dibujado de bolas en el menu
-	
+
 	for (int i = 0; i < startingBalls; ++i) {
 		int circleX = centerX + (i - 1) * 50;
 		if (i < ballsLeft) { DrawCircle(circleX, 260, 14.0f, WHITE); }
 		else { DrawCircleLines(circleX, 260, 14.0f, Color{ 90, 100, 140, 255 }); }
 	}
 
-	
+
 	for (int i = 0; i < maxExtraBalls; ++i) {
 		int extraX = centerX + (int)((i - (maxExtraBalls - 1) / 2.0f) * 24.0f);
 		if ((size_t)i < extraBalls.size()) { DrawCircle(extraX, 287, 7.0f, Color{ 90, 220, 255, 255 }); }
@@ -501,8 +497,8 @@ void ModuleGame::drawMap() { //the images are half size, so the destination is d
 update_status ModuleGame::Update()
 {
 	//Alejandro Hoy
-	drawMap(); 
-	
+	drawMap();
+
 	//Alejandro Hoy END
 
 	//other n
@@ -510,14 +506,24 @@ update_status ModuleGame::Update()
 
 
 
-//congelar fisicas si estamos en el estado MENU
+	//congelar fisicas si estamos en el estado MENU
 	App->physics->paused = (state == MENU || state == SETTINGS);
 
 	//ir dibujando
 	if (state == MENU) { updateMenu();     drawMenu();     return UPDATE_CONTINUE; }
 	if (state == SETTINGS) { updateSettings(); drawSettings(); return UPDATE_CONTINUE; }
 
-//abris ajustes con TAB
+	// Esc abre el menu principal sin perder la partida
+	if (state == PLAYING && IsKeyPressed(KEY_ESCAPE))
+	{
+		menuIndex = 0;
+		state = MENU;
+		App->physics->paused = true;
+		drawMenu();
+		return UPDATE_CONTINUE;
+	}
+
+	// TAB sigue abriendo ajustes directamente (opcional, podeis quitarlo)
 	if (state == PLAYING && IsKeyPressed(KEY_TAB)) { openSettings(PLAYING); }
 
 
@@ -615,28 +621,28 @@ update_status ModuleGame::Update()
 
 	//n
 	if (state == GAME_OVER) { drawGameOver(); }
-	
+
 	//points assign n
-	if (state == PLAYING) 
-	{ 
+	if (state == PLAYING)
+	{
 		//Hacemos sonar los trremendos sonidos
 		if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) { App->audio->PlayFx(fx_flipper); }
 		if (IsKeyReleased(KEY_DOWN)) { App->audio->PlayFx(fx_launch); }
-		
 
 
 
-		int hits = App->physics->bumperHits;     
+
+		int hits = App->physics->bumperHits;
 		score += hits * bumperPoints;
 
-		bumperCombo += hits;                    
+		bumperCombo += hits;
 		if (bumperCombo >= bumperComboTarget)
 		{
-			bumperCombo -= bumperComboTarget;    
+			bumperCombo -= bumperComboTarget;
 			if ((int)extraBalls.size() < maxExtraBalls) { spawnExtraBall(); }
-			App->audio->PlayFx(bonus_fx);        
+			App->audio->PlayFx(bonus_fx);
 		}
-	
+
 	}
 	App->physics->bumperHits = 0;
 	//end of n
@@ -678,7 +684,7 @@ void ModuleGame::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 	case BODY_BUMPER: App->audio->PlayFx(fx_bumper); break;
 	case BODY_SLING: App->audio->PlayFx(fx_sling); break;
 	case BODY_WALL:
-		
+
 		if (bodyA->body->GetLinearVelocity().Length() > 3.0f)
 			App->audio->PlayFx(fx_wall);
 		break;
@@ -716,14 +722,25 @@ void ModuleGame::openSettings(gameState from)
 
 void ModuleGame::updateMenu()
 {
-	const int options = 2;  
+	const int options = 2;
 
 	if (IsKeyPressed(KEY_DOWN)) { menuIndex = (menuIndex + 1) % options; }
 	if (IsKeyPressed(KEY_UP)) { menuIndex = (menuIndex + options - 1) % options; }
 
+	// Esc dentro del menu: volver a la partida si hay una en curso
+	if (IsKeyPressed(KEY_ESCAPE) && gameInProgress)
+	{
+		state = PLAYING;
+		return;
+	}
+
 	if (IsKeyPressed(KEY_ENTER))
 	{
-		if (menuIndex == 0) { restart(); }
+		if (menuIndex == 0)
+		{
+			if (gameInProgress) { state = PLAYING; }   // RESUME
+			else { restart(); }                        // partida nueva
+		}
 		else { openSettings(MENU); }
 	}
 }
@@ -766,7 +783,8 @@ void ModuleGame::updateSettings()
 		break;
 	}
 
-	if (IsKeyPressed(KEY_TAB)) { state = returnState; }
+	// TAB o Esc: volver atras
+	if (IsKeyPressed(KEY_TAB) || IsKeyPressed(KEY_ESCAPE)) { state = returnState; }
 }
 
 //Dibujado del menu
@@ -779,7 +797,7 @@ void ModuleGame::drawMenu()
 	const char* title = "PINBALL";
 	DrawText(title, centerX - MeasureText(title, 70) / 2, 150, 70, Color{ 255, 230, 90, 255 });
 
-	const char* items[2] = { "PLAY", "PHYSICS SETTINGS" };
+	const char* items[2] = { gameInProgress ? "RESUME" : "PLAY", "PHYSICS SETTINGS" };
 	for (int i = 0; i < 2; ++i)
 	{
 		bool selected = (i == menuIndex);
@@ -788,7 +806,8 @@ void ModuleGame::drawMenu()
 			selected ? Color{ 255, 120, 210, 255 } : WHITE);
 	}
 
-	const char* hint = "UP/DOWN: move    ENTER: select";
+	const char* hint = gameInProgress ? "UP/DOWN: move    ENTER: select    ESC: back to game"
+		: "UP/DOWN: move    ENTER: select";
 	DrawText(hint, centerX - MeasureText(hint, 20) / 2, SCREEN_HEIGHT - 80, 20, Color{ 150, 170, 210, 255 });
 }
 
@@ -824,6 +843,6 @@ void ModuleGame::drawSettings()
 	DrawText(back, centerX - MeasureText(back, 30) / 2, 230 + 4 * 70 + 20, 30,
 		(settingsIndex == 4) ? Color{ 255, 120, 210, 255 } : WHITE);
 
-	const char* hint = "UP/DOWN: row    LEFT/RIGHT: change    TAB: back";
+	const char* hint = "UP/DOWN: row    LEFT/RIGHT: change    ESC / TAB: back";
 	DrawText(hint, centerX - MeasureText(hint, 20) / 2, SCREEN_HEIGHT - 80, 20, Color{ 150, 170, 210, 255 });
 }

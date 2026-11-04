@@ -24,10 +24,10 @@ const int startingBalls = 3;
 
 //N Variables para controlar los combos
 //cuantos golpes admite el bumper para cumplir el bonus
-const int bumperComboTarget = 3;   
+const int bumperComboTarget = 3;
 const int maxExtraBalls = 3;   // bolas maximas
 //maximas bolas en pantalla
-const int maxBalls = 5;            
+const int maxBalls = 5;
 
 
 void restart();
@@ -135,21 +135,24 @@ public:
 
 	//Mas variables para los menus, su control
 	//saber donde ir al volver
-	gameState returnState;                 
-	int   menuIndex = 0;                   
-	int   settingsIndex = 0;               
-	float wallBounce = wallRestitution;    
+	gameState returnState;
+	int   menuIndex = 0;
+	int   settingsIndex = 0;
+	float wallBounce = wallRestitution;
 
-	void updateMenu();                     
-	void drawMenu();                       
-	void updateSettings();                
-	void drawSettings();                  
-	void openSettings(gameState from);     
+	//true si hay una partida empezada (para mostrar RESUME en vez de PLAY)
+	bool  gameInProgress = false;
+
+	void updateMenu();
+	void drawMenu();
+	void updateSettings();
+	void drawSettings();
+	void openSettings(gameState from);
 
 
 
-	int ballsLeft; 
-	PhysBody* currentBall; 
+	int ballsLeft;
+	PhysBody* currentBall;
 
 	void ballLost();
 
