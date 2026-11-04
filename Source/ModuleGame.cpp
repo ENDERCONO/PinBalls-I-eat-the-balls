@@ -510,7 +510,13 @@ update_status ModuleGame::Update()
 	App->physics->paused = (state == MENU || state == SETTINGS);
 
 	//ir dibujando
-	if (state == MENU) { updateMenu();     drawMenu();     return UPDATE_CONTINUE; }
+	if (state == MENU)
+	{
+		updateMenu();
+		if (wantsExit) { return UPDATE_STOP; }   // salir del juego
+		drawMenu();
+		return UPDATE_CONTINUE;
+	}
 	if (state == SETTINGS) { updateSettings(); drawSettings(); return UPDATE_CONTINUE; }
 
 	// Esc abre el menu principal sin perder la partida
@@ -722,7 +728,7 @@ void ModuleGame::openSettings(gameState from)
 
 void ModuleGame::updateMenu()
 {
-	const int options = 2;
+	const int options = 3;   // PLAY/RESUME, PHYSICS SETTINGS, EXIT
 
 	if (IsKeyPressed(KEY_DOWN)) { menuIndex = (menuIndex + 1) % options; }
 	if (IsKeyPressed(KEY_UP)) { menuIndex = (menuIndex + options - 1) % options; }
@@ -741,7 +747,8 @@ void ModuleGame::updateMenu()
 			if (gameInProgress) { state = PLAYING; }   // RESUME
 			else { restart(); }                        // partida nueva
 		}
-		else { openSettings(MENU); }
+		else if (menuIndex == 1) { openSettings(MENU); }
+		else { wantsExit = true; }                     // EXIT
 	}
 }
 
@@ -797,8 +804,8 @@ void ModuleGame::drawMenu()
 	const char* title = "PINBALL";
 	DrawText(title, centerX - MeasureText(title, 70) / 2, 150, 70, Color{ 255, 230, 90, 255 });
 
-	const char* items[2] = { gameInProgress ? "RESUME" : "PLAY", "PHYSICS SETTINGS" };
-	for (int i = 0; i < 2; ++i)
+	const char* items[3] = { gameInProgress ? "RESUME" : "PLAY", "PHYSICS SETTINGS", "EXIT" };
+	for (int i = 0; i < 3; ++i)
 	{
 		bool selected = (i == menuIndex);
 		const char* text = selected ? TextFormat("> %s <", items[i]) : items[i];

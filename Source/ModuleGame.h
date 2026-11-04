@@ -143,6 +143,9 @@ public:
 	//true si hay una partida empezada (para mostrar RESUME en vez de PLAY)
 	bool  gameInProgress = false;
 
+	//true cuando se pulsa EXIT en el menu
+	bool  wantsExit = false;
+
 	void updateMenu();
 	void drawMenu();
 	void updateSettings();

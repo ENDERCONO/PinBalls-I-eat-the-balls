@@ -40,7 +40,7 @@ bool ModuleWindow::Init()
 	SetTargetFPS(60);
 	InitWindow(width, height, TITLE);
 
-	// Esc ya no cierra la ventana (lo usamos para abrir el menu)
+	// Esc ya no cierra la ventana 
 	SetExitKey(KEY_NULL);
 
 	return ret;
