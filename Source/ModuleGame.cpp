@@ -12,7 +12,41 @@
 #include <stdlib.h>
 
 
+// ---------------------------------------------------------------------------------------------
+// Funciones auxiliares para dibujar los paneles (estilo pixel art)
+// ---------------------------------------------------------------------------------------------
+static void DrawPixelText(const char* text, int x, int y, int size, Color color)
+{
+	DrawText(text, x + 2, y + 2, size, Color{ 0, 0, 0, 200 }); // sombra
+	DrawText(text, x, y, size, color);
+}
 
+static void DrawPixelTextCentered(const char* text, int center_x, int y, int size, Color color)
+{
+	DrawPixelText(text, center_x - MeasureText(text, size) / 2, y, size, color);
+}
+
+static void DrawPanel(int x, int y, int w, int h)
+{
+	DrawRectangle(x, y, w, h, Color{ 12, 10, 38, 235 });
+	DrawRectangleLinesEx(Rectangle{ (float)x, (float)y, (float)w, (float)h }, 4.0f, Color{ 90, 220, 255, 255 });
+	DrawRectangleLinesEx(Rectangle{ (float)x + 8, (float)y + 8, (float)w - 16, (float)h - 16 }, 2.0f, Color{ 50, 70, 140, 255 });
+	DrawRectangle(x + 4, y + 4, w - 8, 4, Color{ 255, 255, 255, 40 });
+}
+
+// Panel de la derecha con los controles
+static void DrawControlsPanel()
+{
+	const int right_x = TABLE_X + TABLE_W + 30;
+	DrawPanel(right_x, 40, TABLE_X - 60, 320);
+
+	DrawPixelTextCentered("CONTROLS", right_x + (TABLE_X - 60) / 2, 66, 40, Color{ 255, 90, 200, 255 });
+	DrawPixelText("A / <   LEFT", right_x + 30, 140, 20, WHITE);
+	DrawPixelText("D / >   RIGHT", right_x + 30, 175, 20, WHITE);
+	DrawPixelText("W / v   LAUNCH", right_x + 30, 210, 20, WHITE);
+	DrawPixelText("ESC     MENU", right_x + 30, 245, 20, WHITE);
+	DrawPixelText("TAB     PHISICS SETTINGS", right_x + 30, 280, 20, WHITE);
+}
 
 
 // Base class for everything in the scene that has a physics body
@@ -585,6 +619,7 @@ update_status ModuleGame::Update()
 
 	//other n
 	drawScorePanel();
+	DrawControlsPanel();   //panel de la derecha con los controles
 
 
 
@@ -941,9 +976,6 @@ void ModuleGame::drawMenu()
 		: "UP/DOWN: move    ENTER: select";
 	DrawText(hint, centerX - MeasureText(hint, 20) / 2, SCREEN_HEIGHT - 80, 20, Color{ 150, 170, 210, 255 });
 }
-
-
-
 
 void ModuleGame::drawSettings()
 {
