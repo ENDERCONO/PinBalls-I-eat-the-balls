@@ -442,21 +442,39 @@ update_status ModulePhysics::PreUpdate()
 	//28/10
 
 	//------------------------------
-//Slowdown de los triangulos (mismo codigo que la friccion)
+//Rele de los triangulos (mismo codigo que la friccion) de bloque anterior, per modificad. Para que funcione yno tengamosbugs por ser una esfer... vaya
 	float radSling = PIXEL_TO_METERS(60);
+
+	b2Body* slings[2] = { slingL, slingR };
+	float margin = PIXEL_TO_METERS(20);   // grosor de la zona alrededor del triangulo
 
 	for (b2Body* b = world->GetBodyList(); b; b = b->GetNext())
 	{
 		if (b->GetType() != b2_dynamicBody)
 			continue;
 
-		b2Vec2 dL = b->GetPosition() - slingL->GetPosition();
-		if (dL.Length() < radSling)
-			b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
+		PhysBody* pb = (PhysBody*)b->GetUserData().pointer;
+		if (pb == NULL || pb->type != BODY_BALL)
+			continue;
 
-		b2Vec2 dR = b->GetPosition() - slingR->GetPosition();
-		if (dR.Length() < radSling)
-			b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
+		for (int k = 0; k < 2; ++k)
+		{
+			b2PolygonShape* s = (b2PolygonShape*)slings[k]->GetFixtureList()->GetShape();
+			float best = 1000000.0f;
+
+			for (int i = 0; i < s->m_count; ++i)
+			{
+				b2Vec2 a = slings[k]->GetWorldPoint(s->m_vertices[i]);
+				b2Vec2 c = slings[k]->GetWorldPoint(s->m_vertices[(i + 1) % s->m_count]);
+				b2Vec2 ac = c - a;
+				float t = b2Clamp(b2Dot(b->GetPosition() - a, ac) / b2Dot(ac, ac), 0.0f, 1.0f);
+				float d = (b->GetPosition() - (a + t * ac)).Length();
+				if (d < best) best = d;
+			}
+
+			if (best < margin)
+				b->SetLinearVelocity(0.95f * b->GetLinearVelocity());
+		}
 	}
 
 	//----------------------------
